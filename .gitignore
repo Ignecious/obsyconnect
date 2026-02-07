@@ -3,3 +3,11 @@ node_modules/
 dist/
 *.log
 *.tsbuildinfo
+.angular/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
