@@ -152,22 +152,32 @@ export class AdminSettingsComponent {
   }
   
   copyEmbedCode() {
-    navigator.clipboard.writeText(this.embedCode);
-    alert('Embed code copied to clipboard!');
+    navigator.clipboard.writeText(this.embedCode).then(
+      () => alert('Embed code copied to clipboard!'),
+      () => alert('Failed to copy embed code. Please copy manually.')
+    );
   }
   
   addUser() {
-    if (this.newUser.name && this.newUser.email) {
-      this.teamMembers.push({
-        name: this.newUser.name,
-        email: this.newUser.email,
-        role: this.newUser.role,
-        status: 'Active',
-        avatar: '👤'
-      });
-      this.seatsUsed++;
-      this.newUser = { name: '', email: '', role: 'Agent' };
-      alert('User added successfully!');
+    if (!this.newUser.name || !this.newUser.email) {
+      alert('Please fill in both name and email fields.');
+      return;
     }
+    
+    if (this.seatsUsed >= this.seatsTotal) {
+      alert('All seats are occupied. Please upgrade your plan to add more users.');
+      return;
+    }
+    
+    this.teamMembers.push({
+      name: this.newUser.name,
+      email: this.newUser.email,
+      role: this.newUser.role,
+      status: 'Active',
+      avatar: '👤'
+    });
+    this.seatsUsed++;
+    this.newUser = { name: '', email: '', role: 'Agent' };
+    alert('User added successfully!');
   }
 }
