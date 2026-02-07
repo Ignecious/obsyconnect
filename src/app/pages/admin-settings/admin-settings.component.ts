@@ -1,156 +1,397 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
-interface KnowledgeArticle {
+interface UploadedFile {
   id: number;
-  title: string;
-  category: string;
+  name: string;
+  type: 'pdf' | 'docx' | 'txt';
+  size: string;
+  icon: string;
 }
 
-interface FAQ {
+interface CustomQA {
   id: number;
   question: string;
   answer: string;
 }
 
-interface Channel {
-  name: string;
-  status: 'connected' | 'configured' | 'not-configured' | 'coming-soon';
-  icon: string;
-}
-
 interface TeamMember {
   name: string;
   email: string;
-  role: string;
-  status: 'Active' | 'Offline';
+  role: 'Admin' | 'Manager' | 'Agent' | 'Owner';
+  status: 'Online' | 'Away' | 'Offline';
+  statusColor: string;
   avatar: string;
+  activeConversations: number;
+  queues: string;
 }
 
 interface Queue {
   name: string;
-  count: number;
-  color: string;
+  icon: string;
+  agents: string;
+  cases: number;
+  avgWait: string;
+  priority: 'Urgent' | 'High' | 'Medium' | 'Low';
 }
 
 interface RoutingRule {
+  id: number;
   name: string;
   condition: string;
-  queue: string;
+  action: string;
+  enabled: boolean;
 }
 
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './admin-settings.component.html',
   styleUrl: './admin-settings.component.scss'
 })
-export class AdminSettingsComponent {
+export class AdminSettingsComponent implements OnInit {
   activeTab: string = 'ai-agent';
   
+  // Modal states
+  showAddQAModal: boolean = false;
+  showTestAIModal: boolean = false;
+  showAddUserModal: boolean = false;
+  editingQA: CustomQA | null = null;
+  
+  // Test AI Chat
+  testMessages: Array<{sender: 'user' | 'ai', message: string, source?: string}> = [];
+  testUserInput: string = '';
+  
+  constructor(
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
+  
+  ngOnInit() {
+    // Check URL query params for tab state
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab = params['tab'];
+      }
+    });
+  }
+  
   // AI Agent Tab Data
-  agentName: string = 'ObsyBot';
-  agentGreeting: string = 'Hello! I\'m ObsyBot, your AI assistant. How can I help you today?';
+  agentName: string = 'Tixxets Support Assistant';
+  agentGreeting: string = 'Hi! 👋 I\'m the Tixxets AI assistant. How can I help you today?';
   aiModel: string = 'claude-3.5';
   temperature: number = 0.7;
-  autoEscalation: boolean = true;
+  maxResponseLength: string = '500';
+  autoEscalateAttempts: number = 3;
   
-  knowledgeArticles: KnowledgeArticle[] = [
-    { id: 1, title: 'Getting Started Guide', category: 'Onboarding' },
-    { id: 2, title: 'Account Setup Instructions', category: 'Onboarding' },
-    { id: 3, title: 'Billing & Payments FAQ', category: 'Billing' },
-    { id: 4, title: 'Subscription Plans Overview', category: 'Billing' },
-    { id: 5, title: 'Troubleshooting Login Issues', category: 'Technical' },
-    { id: 6, title: 'API Integration Guide', category: 'Technical' },
-    { id: 7, title: 'WhatsApp Setup Tutorial', category: 'Channels' },
-    { id: 8, title: 'Webchat Widget Configuration', category: 'Channels' },
-    { id: 9, title: 'Data Security & Privacy', category: 'Security' },
-    { id: 10, title: 'GDPR Compliance Information', category: 'Security' },
-    { id: 11, title: 'Team Management Best Practices', category: 'Admin' },
-    { id: 12, title: 'Advanced Routing Rules', category: 'Admin' }
+  // Knowledge Base - Mock uploaded files (12 items)
+  uploadedFiles: UploadedFile[] = [
+    { id: 1, name: 'refund-policy.pdf', type: 'pdf', size: '2.3 MB', icon: '📄' },
+    { id: 2, name: 'product-catalog.docx', type: 'docx', size: '1.8 MB', icon: '📄' },
+    { id: 3, name: 'shipping-guide.pdf', type: 'pdf', size: '890 KB', icon: '📄' },
+    { id: 4, name: 'returns-process.txt', type: 'txt', size: '45 KB', icon: '📄' },
+    { id: 5, name: 'event-ticketing-faq.pdf', type: 'pdf', size: '1.2 MB', icon: '📄' },
+    { id: 6, name: 'payment-methods.docx', type: 'docx', size: '320 KB', icon: '📄' },
+    { id: 7, name: 'venue-information.pdf', type: 'pdf', size: '2.1 MB', icon: '📄' },
+    { id: 8, name: 'group-bookings.pdf', type: 'pdf', size: '1.5 MB', icon: '📄' },
+    { id: 9, name: 'accessibility-info.txt', type: 'txt', size: '28 KB', icon: '📄' },
+    { id: 10, name: 'cancellation-policy.pdf', type: 'pdf', size: '670 KB', icon: '📄' },
+    { id: 11, name: 'age-restrictions.docx', type: 'docx', size: '210 KB', icon: '📄' },
+    { id: 12, name: 'parking-directions.txt', type: 'txt', size: '15 KB', icon: '📄' }
   ];
   
-  faqs: FAQ[] = [
-    { id: 1, question: 'How do I reset my password?', answer: 'Click on "Forgot Password" on the login page.' },
-    { id: 2, question: 'What payment methods do you accept?', answer: 'We accept credit cards, debit cards, and bank transfers.' },
-    { id: 3, question: 'Can I upgrade my plan?', answer: 'Yes, you can upgrade anytime from the Settings page.' },
-    { id: 4, question: 'How do I add team members?', answer: 'Go to Settings > Users and click "Add User".' },
-    { id: 5, question: 'Is there a mobile app?', answer: 'Yes, our mobile app is available on iOS and Android.' },
-    { id: 6, question: 'How do I connect WhatsApp?', answer: 'Navigate to Settings > Channels and follow the WhatsApp setup wizard.' },
-    { id: 7, question: 'What is the response time SLA?', answer: 'Our standard SLA is 4 hours for regular tickets and 1 hour for VIP.' },
-    { id: 8, question: 'Can I export conversation data?', answer: 'Yes, you can export data from the Reports section.' },
-    { id: 9, question: 'How does AI escalation work?', answer: 'AI automatically transfers to human agents when confidence is low.' },
-    { id: 10, question: 'What languages are supported?', answer: 'We support English, Afrikaans, isiZulu, and isiXhosa.' },
-    { id: 11, question: 'How secure is the platform?', answer: 'We use bank-level encryption and comply with GDPR and POPIA.' },
-    { id: 12, question: 'Can I customize the webchat widget?', answer: 'Yes, you can change colors, position, and branding.' },
-    { id: 13, question: 'What is included in the free trial?', answer: 'Full platform access for 14 days with up to 5 agents.' },
-    { id: 14, question: 'How do I cancel my subscription?', answer: 'Contact support or cancel from the Billing section.' },
-    { id: 15, question: 'Can I integrate with my CRM?', answer: 'Yes, we offer integrations with popular CRMs via API.' },
-    { id: 16, question: 'What happens if I exceed my seat limit?', answer: 'You\'ll be prompted to upgrade to add more seats.' },
-    { id: 17, question: 'How does queue routing work?', answer: 'Cases are automatically routed based on predefined rules.' },
-    { id: 18, question: 'Can I track agent performance?', answer: 'Yes, detailed analytics are available in the Reports dashboard.' }
+  // Custom Q&A (18 entries)
+  customQAs: CustomQA[] = [
+    { id: 1, question: 'What are your business hours?', answer: 'We\'re open Monday to Friday, 9:00 AM - 5:00 PM SAST. Closed on weekends and public holidays.' },
+    { id: 2, question: 'What payment methods do you accept?', answer: 'We accept Visa, Mastercard, EFT, and SnapScan. All payments are secure and encrypted.' },
+    { id: 3, question: 'How long does delivery take?', answer: 'Digital tickets are delivered instantly via email. Physical tickets take 3-5 business days.' },
+    { id: 4, question: 'What is your refund policy?', answer: 'Full refunds up to 14 days before the event. After that, refunds are subject to event organizer approval.' },
+    { id: 5, question: 'Can I change my ticket after purchase?', answer: 'Yes, tickets can be transferred up to 24 hours before the event start time.' },
+    { id: 6, question: 'Do you offer group discounts?', answer: 'Yes, groups of 10+ receive 15% off. Contact our group sales team for larger bookings.' },
+    { id: 7, question: 'Are there age restrictions?', answer: 'Age restrictions vary by event. Check event details for specific requirements.' },
+    { id: 8, question: 'Where can I park?', answer: 'Most venues have on-site parking or nearby garages. Check venue details for parking information.' },
+    { id: 9, question: 'Do you have wheelchair access?', answer: 'All our venues are wheelchair accessible. Contact us for specific accessibility needs.' },
+    { id: 10, question: 'Can I cancel my order?', answer: 'Orders can be cancelled up to 48 hours before the event for a full refund minus booking fee.' },
+    { id: 11, question: 'How do I contact support?', answer: 'Email support@tixxets.com or call +27 82 555 0123. We respond within 24 hours.' },
+    { id: 12, question: 'What if the event is cancelled?', answer: 'You\'ll receive a full automatic refund within 5 business days if an event is cancelled.' },
+    { id: 13, question: 'Can I buy tickets at the door?', answer: 'Subject to availability. Online booking recommended to guarantee entry.' },
+    { id: 14, question: 'Do you charge booking fees?', answer: 'A small R15 booking fee applies per transaction to cover processing costs.' },
+    { id: 15, question: 'How do I receive my tickets?', answer: 'Tickets are emailed within 5 minutes of purchase. Check spam folder if not received.' },
+    { id: 16, question: 'What if I don\'t receive my email?', answer: 'Check spam folder or contact support with your order number for immediate assistance.' },
+    { id: 17, question: 'Can I get a receipt?', answer: 'Yes, receipts are included with your confirmation email and available in your account.' },
+    { id: 18, question: 'Do you offer VIP packages?', answer: 'Yes! VIP packages include premium seating, backstage access, and exclusive perks. Visit our VIP page for details.' }
   ];
+  
+  newQA: CustomQA = { id: 0, question: '', answer: '' };
   
   // Channels Tab Data
-  channels: Channel[] = [
-    { name: 'WhatsApp Business', status: 'connected', icon: '📱' },
-    { name: 'Webchat Widget', status: 'configured', icon: '💬' },
-    { name: 'Email', status: 'not-configured', icon: '📧' },
-    { name: 'SMS', status: 'coming-soon', icon: '💌' }
-  ];
+  whatsappPhone: string = '+27 82 555 0123';
+  whatsappConversations: number = 245;
+  whatsappBusinessId: string = '1234567890';
+  whatsappAccessToken: string = '••••••••••••••';
+  whatsappPhoneId: string = '9876543210';
   
+  webchatConversations: number = 189;
   webchatColor: string = '#A855F7';
-  embedCode: string = '<script src="https://obsyconnect.com/widget.js" data-id="your-company-id"></script>';
-  whatsappNumber: string = '+27 81 234 5678';
+  webchatPosition: string = 'bottom-right';
+  webchatWelcome: string = 'Hi! 👋 How can we help?';
+  webchatDomains: string[] = ['tixxets.com', 'www.tixxets.com'];
+  newDomain: string = '';
+  embedCode: string = `<script src="https://cdn.obsyconnect.com/widget.js"
+  data-tenant="tixxets"
+  data-color="#A855F7">
+</script>`;
   
   // Users Tab Data
   seatsUsed: number = 5;
   seatsTotal: number = 10;
-  monthlyPrice: number = 599;
+  basePlanCost: number = 299;
+  seatCost: number = 60;
+  get monthlyTotal(): number {
+    return this.basePlanCost + (this.seatsUsed * this.seatCost);
+  }
   
   teamMembers: TeamMember[] = [
-    { name: 'Sarah Chen', email: 'sarah@company.com', role: 'Senior Agent', status: 'Active', avatar: '👩' },
-    { name: 'John Botha', email: 'john@company.com', role: 'Agent', status: 'Active', avatar: '👨' },
-    { name: 'Rose Nkosi', email: 'rose@company.com', role: 'Team Lead', status: 'Active', avatar: '👩' },
-    { name: 'Michael van der Merwe', email: 'michael@company.com', role: 'Agent', status: 'Offline', avatar: '👨' },
-    { name: 'Admin User', email: 'admin@company.com', role: 'Administrator', status: 'Active', avatar: '👤' }
+    { 
+      name: 'Sarah Chen', 
+      email: 'sarah@tixxets.com', 
+      role: 'Admin', 
+      status: 'Online', 
+      statusColor: '🟢',
+      avatar: '👤', 
+      activeConversations: 3,
+      queues: 'All'
+    },
+    { 
+      name: 'John Smith', 
+      email: 'john@tixxets.com', 
+      role: 'Agent', 
+      status: 'Online', 
+      statusColor: '🟢',
+      avatar: '👤', 
+      activeConversations: 2,
+      queues: 'Billing'
+    },
+    { 
+      name: 'Rose Williams', 
+      email: 'rose@tixxets.com', 
+      role: 'Agent', 
+      status: 'Away', 
+      statusColor: '🟡',
+      avatar: '👤', 
+      activeConversations: 0,
+      queues: 'General'
+    },
+    { 
+      name: 'Michael Brown', 
+      email: 'michael@tixxets.com', 
+      role: 'Manager', 
+      status: 'Online', 
+      statusColor: '🟢',
+      avatar: '👤', 
+      activeConversations: 0,
+      queues: 'All'
+    },
+    { 
+      name: 'Admin User', 
+      email: 'admin@tixxets.com', 
+      role: 'Owner', 
+      status: 'Online', 
+      statusColor: '🟢',
+      avatar: '👤', 
+      activeConversations: 0,
+      queues: '-'
+    }
   ];
   
-  newUser = { name: '', email: '', role: 'Agent' };
+  newUser = { 
+    name: '', 
+    email: '', 
+    role: 'Agent',
+    queues: [] as string[]
+  };
+  
+  availableQueues = ['New Cases', 'Billing', 'Technical', 'VIP'];
   
   // Queues Tab Data
   queues: Queue[] = [
-    { name: 'New', count: 12, color: '#3B82F6' },
-    { name: 'Billing', count: 8, color: '#F59E0B' },
-    { name: 'Technical', count: 15, color: '#EF4444' },
-    { name: 'VIP', count: 3, color: '#A855F7' },
-    { name: 'General', count: 24, color: '#10B981' }
+    { name: 'New Cases', icon: '🔵', agents: 'All(5)', cases: 12, avgWait: '3 min', priority: 'High' },
+    { name: 'Billing', icon: '💰', agents: '2', cases: 5, avgWait: '8 min', priority: 'Medium' },
+    { name: 'Technical', icon: '🔧', agents: '2', cases: 3, avgWait: '5 min', priority: 'High' },
+    { name: 'VIP', icon: '⭐', agents: 'All(5)', cases: 1, avgWait: '2 min', priority: 'Urgent' },
+    { name: 'General', icon: '📧', agents: '3', cases: 8, avgWait: '12 min', priority: 'Low' }
   ];
   
   routingRules: RoutingRule[] = [
-    { name: 'VIP Customers', condition: 'Customer tier = VIP', queue: 'VIP' },
-    { name: 'Billing Keywords', condition: 'Message contains "invoice" or "payment"', queue: 'Billing' },
-    { name: 'Technical Keywords', condition: 'Message contains "bug" or "error"', queue: 'Technical' },
-    { name: 'Default Rule', condition: 'All other cases', queue: 'General' }
+    { 
+      id: 1, 
+      name: 'Keyword-based routing', 
+      condition: 'If message contains: "refund", "payment", "bill"', 
+      action: 'Route to: Billing queue',
+      enabled: true
+    },
+    { 
+      id: 2, 
+      name: 'VIP customer routing', 
+      condition: 'If customer status = "VIP"', 
+      action: 'Route to: VIP queue (priority)',
+      enabled: true
+    },
+    { 
+      id: 3, 
+      name: 'AI escalation routing', 
+      condition: 'If AI escalates after 3 attempts', 
+      action: 'Route to: Technical queue',
+      enabled: true
+    },
+    { 
+      id: 4, 
+      name: 'Business hours routing', 
+      condition: 'If outside business hours (8am-6pm)', 
+      action: 'Show message: "We\'ll respond in 24hrs"',
+      enabled: true
+    }
   ];
   
   slaSettings = {
-    standard: '4 hours',
-    vip: '1 hour',
-    businessHours: '08:00 - 17:00 SAST'
+    firstResponse: '15 minutes',
+    resolution: '24 hours',
+    businessHours: 'Monday - Friday: 8:00 AM - 6:00 PM',
+    timezone: 'Africa/Johannesburg',
+    autoEscalate: true,
+    notifyManager: true
   };
   
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    // Update URL query param
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tab },
+      queryParamsHandling: 'merge'
+    });
   }
   
-  testAI() {
-    alert('AI Test: "Hello! I\'m ObsyBot, your AI assistant. How can I help you today?"');
+  // Knowledge Base methods
+  onFileSelect(event: any) {
+    // Mock file upload - in real app would handle file upload
+    const files = event.target.files;
+    console.log('Files selected:', files);
+    alert('File upload functionality would be implemented here');
   }
   
+  deleteFile(fileId: number) {
+    if (confirm('Are you sure you want to delete this file?')) {
+      this.uploadedFiles = this.uploadedFiles.filter(f => f.id !== fileId);
+    }
+  }
+  
+  // Custom Q&A methods
+  openAddQAModal() {
+    this.editingQA = null;
+    this.newQA = { id: 0, question: '', answer: '' };
+    this.showAddQAModal = true;
+  }
+  
+  openEditQAModal(qa: CustomQA) {
+    this.editingQA = qa;
+    this.newQA = { ...qa };
+    this.showAddQAModal = true;
+  }
+  
+  saveQA() {
+    if (!this.newQA.question || !this.newQA.answer) {
+      alert('Please fill in both question and answer fields.');
+      return;
+    }
+    
+    if (this.editingQA) {
+      // Update existing
+      const index = this.customQAs.findIndex(q => q.id === this.editingQA!.id);
+      if (index !== -1) {
+        this.customQAs[index] = { ...this.newQA };
+      }
+    } else {
+      // Add new
+      const newId = Math.max(...this.customQAs.map(q => q.id), 0) + 1;
+      this.customQAs.push({ ...this.newQA, id: newId });
+    }
+    
+    this.closeAddQAModal();
+  }
+  
+  closeAddQAModal() {
+    this.showAddQAModal = false;
+    this.editingQA = null;
+    this.newQA = { id: 0, question: '', answer: '' };
+  }
+  
+  deleteQA(qaId: number) {
+    if (confirm('Are you sure you want to delete this Q&A?')) {
+      this.customQAs = this.customQAs.filter(q => q.id !== qaId);
+    }
+  }
+  
+  // Test AI methods
+  openTestAIModal() {
+    this.showTestAIModal = true;
+    this.testMessages = [];
+    this.testUserInput = '';
+  }
+  
+  closeTestAIModal() {
+    this.showTestAIModal = false;
+    this.testMessages = [];
+    this.testUserInput = '';
+  }
+  
+  sendTestMessage() {
+    if (!this.testUserInput.trim()) {
+      // Early return for empty messages - no action needed in test environment
+      return;
+    }
+    
+    // Add user message
+    this.testMessages.push({ sender: 'user', message: this.testUserInput });
+    
+    // Mock AI response
+    const lowerInput = this.testUserInput.toLowerCase();
+    let response = '';
+    let source = '';
+    
+    // Check custom Q&As with fuzzy matching
+    const QUESTION_MATCH_MIN_LENGTH = 10; // Minimum substring length for question matching
+    const matchingQA = this.customQAs.find(qa => 
+      qa.question.toLowerCase().includes(lowerInput) || 
+      lowerInput.includes(qa.question.toLowerCase().slice(0, QUESTION_MATCH_MIN_LENGTH))
+    );
+    
+    if (matchingQA) {
+      response = matchingQA.answer;
+      source = `From: Custom Q&A #${matchingQA.id}`;
+    } else if (lowerInput.includes('refund') || lowerInput.includes('policy')) {
+      response = 'According to our refund policy, full refunds are available up to 14 days before the event.';
+      source = 'From: refund-policy.pdf';
+    } else if (lowerInput.includes('payment') || lowerInput.includes('pay')) {
+      response = 'We accept Visa, Mastercard, EFT, and SnapScan. All payments are secure and encrypted.';
+      source = 'From: payment-methods.docx';
+    } else {
+      response = 'I\'m here to help! Could you please provide more details about your question?';
+      source = 'From: AI General Knowledge';
+    }
+    
+    // Add AI response after short delay
+    setTimeout(() => {
+      this.testMessages.push({ sender: 'ai', message: response, source: source });
+    }, 500);
+    
+    this.testUserInput = '';
+  }
+  
+  // Channels methods
   copyEmbedCode() {
     navigator.clipboard.writeText(this.embedCode).then(
       () => alert('Embed code copied to clipboard!'),
@@ -158,9 +399,65 @@ export class AdminSettingsComponent {
     );
   }
   
+  addDomain() {
+    if (this.newDomain && !this.webchatDomains.includes(this.newDomain)) {
+      this.webchatDomains.push(this.newDomain);
+      this.newDomain = '';
+    }
+  }
+  
+  removeDomain(domain: string) {
+    this.webchatDomains = this.webchatDomains.filter(d => d !== domain);
+  }
+  
+  previewWidget() {
+    alert('Widget preview functionality would open a modal with the webchat widget');
+  }
+  
+  testWhatsApp() {
+    alert('Test message sent to ' + this.whatsappPhone);
+  }
+  
+  configureWhatsApp() {
+    alert('WhatsApp configuration modal would open here');
+  }
+  
+  disconnectWhatsApp() {
+    if (confirm('Are you sure you want to disconnect WhatsApp?')) {
+      alert('WhatsApp disconnected');
+    }
+  }
+  
+  setupEmail() {
+    alert('Email setup wizard would open here');
+  }
+  
+  // Users methods
+  openAddUserModal() {
+    this.showAddUserModal = true;
+    this.newUser = { name: '', email: '', role: 'Agent', queues: [] };
+  }
+  
+  closeAddUserModal() {
+    this.showAddUserModal = false;
+  }
+  
+  toggleQueue(queue: string) {
+    const index = this.newUser.queues.indexOf(queue);
+    if (index > -1) {
+      this.newUser.queues.splice(index, 1);
+    } else {
+      this.newUser.queues.push(queue);
+    }
+  }
+  
+  isQueueSelected(queue: string): boolean {
+    return this.newUser.queues.includes(queue);
+  }
+  
   addUser() {
     if (!this.newUser.name || !this.newUser.email) {
-      alert('Please fill in both name and email fields.');
+      alert('Please fill in name and email fields.');
       return;
     }
     
@@ -172,12 +469,68 @@ export class AdminSettingsComponent {
     this.teamMembers.push({
       name: this.newUser.name,
       email: this.newUser.email,
-      role: this.newUser.role,
-      status: 'Active',
-      avatar: '👤'
+      role: this.newUser.role as any,
+      status: 'Online',
+      statusColor: '🟢',
+      avatar: '👤',
+      activeConversations: 0,
+      queues: this.newUser.queues.join(', ') || 'All'
     });
     this.seatsUsed++;
-    this.newUser = { name: '', email: '', role: 'Agent' };
-    alert('User added successfully!');
+    this.closeAddUserModal();
+    alert('Invitation sent to ' + this.newUser.email);
+  }
+  
+  editUser(member: TeamMember) {
+    alert('Edit user modal would open for ' + member.name);
+  }
+  
+  addMoreSeats() {
+    alert('Add more seats functionality would open billing modal');
+  }
+  
+  upgradePlan() {
+    alert('Upgrade plan functionality would open pricing page');
+  }
+  
+  // Queues methods
+  viewQueueCases(queueName: string) {
+    alert('Viewing cases for queue: ' + queueName);
+  }
+  
+  editQueue(queue: Queue) {
+    alert('Edit queue modal would open for ' + queue.name);
+  }
+  
+  deleteQueue(queue: Queue) {
+    if (confirm('Are you sure you want to delete queue: ' + queue.name + '?')) {
+      this.queues = this.queues.filter(q => q.name !== queue.name);
+    }
+  }
+  
+  createQueue() {
+    alert('Create queue modal would open here');
+  }
+  
+  addRoutingRule() {
+    alert('Add routing rule modal would open here');
+  }
+  
+  editRule(rule: RoutingRule) {
+    alert('Edit rule modal would open for ' + rule.name);
+  }
+  
+  deleteRule(ruleId: number) {
+    if (confirm('Are you sure you want to delete this rule?')) {
+      this.routingRules = this.routingRules.filter(r => r.id !== ruleId);
+    }
+  }
+  
+  toggleRule(rule: RoutingRule) {
+    rule.enabled = !rule.enabled;
+  }
+  
+  configureBusinessHours() {
+    alert('Business hours configuration modal would open here');
   }
 }
