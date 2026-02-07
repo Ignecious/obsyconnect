@@ -1,0 +1,156 @@
+/* Chat Demo Page Styles */
+.chat-demo-page {
+  min-height: 100vh;
+  background-color: #000000;
+  color: white;
+}
+
+/* Header */
+.header {
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: white;
+    letter-spacing: -0.5px;
+  }
+
+  .nav {
+    display: flex;
+    gap: 2rem;
+
+    a {
+      color: white;
+      text-decoration: none;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #A855F7;
+      }
+    }
+  }
+}
+
+/* Hero Section */
+.hero {
+  padding: 6rem 0;
+  text-align: center;
+
+  .hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+
+    .highlight {
+      color: #A855F7;
+      position: relative;
+      display: inline-block;
+    }
+  }
+
+  .hero-description {
+    font-size: 1.25rem;
+    color: #9CA3AF;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+  }
+
+  .btn-primary {
+    background-color: #A855F7;
+    color: white;
+    border: none;
+    padding: 16px 40px;
+    border-radius: 8px;
+    font-size: 1.125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background-color: #8B5CF6;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .header {
+    .logo {
+      font-size: 1.5rem;
+    }
+
+    .nav {
+      gap: 1rem;
+
+      a {
+        font-size: 0.875rem;
+      }
+    }
+  }
+
+  .hero {
+    padding: 4rem 0;
+
+    .hero-title {
+      font-size: 2.5rem;
+    }
+
+    .hero-description {
+      font-size: 1rem;
+    }
+
+    .btn-primary {
+      font-size: 1rem;
+      padding: 14px 32px;
+    }
+  }
+
+  .container {
+    padding: 0 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    .nav {
+      gap: 0.75rem;
+
+      a {
+        font-size: 0.75rem;
+      }
+    }
+  }
+
+  .hero {
+    padding: 3rem 0;
+
+    .hero-title {
+      font-size: 2rem;
+    }
+  }
+}

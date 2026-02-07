@@ -1,0 +1,74 @@
+<div class="webchat-widget">
+  <!-- Chat Bubble (Closed State) -->
+  <div class="chat-bubble" *ngIf="!isOpen" (click)="toggleChat()">
+    <div class="bubble-icon">💬</div>
+    <div class="bubble-text">Chat</div>
+  </div>
+
+  <!-- Chat Window (Open State) -->
+  <div class="chat-window" *ngIf="isOpen">
+    <!-- Header -->
+    <div class="chat-header">
+      <div class="header-left">
+        <span class="header-icon">💬</span>
+        <span class="header-title">Tixxets Support</span>
+      </div>
+      <button class="close-button" (click)="toggleChat()" aria-label="Close chat">✕</button>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container" #messagesContainer>
+      <div *ngFor="let message of messages" 
+           class="message-wrapper"
+           [class.user-message]="message.sender === 'user'"
+           [class.ai-message]="message.sender === 'ai'">
+        <div class="message-bubble">
+          <span class="message-icon">{{ message.sender === 'ai' ? '🤖' : '👤' }}</span>
+          <div class="message-content" style="white-space: pre-line;">{{ message.text }}</div>
+        </div>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div *ngIf="isTyping" class="message-wrapper ai-message">
+        <div class="message-bubble typing-bubble">
+          <span class="message-icon">🤖</span>
+          <div class="typing-indicator">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Replies -->
+    <div class="quick-replies-container" *ngIf="quickReplies.length > 0">
+      <div class="quick-replies">
+        <span class="quick-replies-label">💡 Suggested:</span>
+        <button 
+          *ngFor="let reply of quickReplies" 
+          class="quick-reply-button"
+          (click)="selectQuickReply(reply)">
+          {{ reply }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Input Box -->
+    <div class="input-container">
+      <input 
+        type="text" 
+        class="message-input"
+        [(ngModel)]="userMessage"
+        (keypress)="onKeyPress($event)"
+        placeholder="Type your message..."
+        [disabled]="isTyping">
+      <button 
+        class="send-button" 
+        (click)="sendMessage()"
+        [disabled]="!userMessage.trim() || isTyping">
+        ➤
+      </button>
+    </div>
+  </div>
+</div>
