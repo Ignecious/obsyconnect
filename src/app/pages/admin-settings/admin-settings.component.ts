@@ -349,7 +349,10 @@ export class AdminSettingsComponent implements OnInit {
   }
   
   sendTestMessage() {
-    if (!this.testUserInput.trim()) return;
+    if (!this.testUserInput.trim()) {
+      // Early return for empty messages - no action needed in test environment
+      return;
+    }
     
     // Add user message
     this.testMessages.push({ sender: 'user', message: this.testUserInput });
@@ -359,10 +362,11 @@ export class AdminSettingsComponent implements OnInit {
     let response = '';
     let source = '';
     
-    // Check custom Q&As
+    // Check custom Q&As with fuzzy matching
+    const QUESTION_MATCH_MIN_LENGTH = 10; // Minimum substring length for question matching
     const matchingQA = this.customQAs.find(qa => 
       qa.question.toLowerCase().includes(lowerInput) || 
-      lowerInput.includes(qa.question.toLowerCase().slice(0, 10))
+      lowerInput.includes(qa.question.toLowerCase().slice(0, QUESTION_MATCH_MIN_LENGTH))
     );
     
     if (matchingQA) {
