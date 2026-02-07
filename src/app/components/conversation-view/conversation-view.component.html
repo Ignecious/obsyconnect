@@ -1,0 +1,98 @@
+<div class="conversation-view">
+  <div *ngIf="!conversation" class="no-conversation">
+    <div class="empty-state">
+      <span class="icon">💬</span>
+      <h3>Select a conversation</h3>
+      <p>Choose a conversation from the inbox to start chatting</p>
+    </div>
+  </div>
+
+  <div *ngIf="conversation" class="conversation-content">
+    <!-- Conversation Header -->
+    <div class="conversation-header">
+      <div class="header-info">
+        <h2>{{ conversation.customer.name }}</h2>
+        <p>{{ conversation.customer.phone }}</p>
+      </div>
+      <div class="header-actions">
+        <span class="status-badge" [class]="'status-' + conversation.status">
+          {{ conversation.status }}
+        </span>
+      </div>
+    </div>
+
+    <!-- AI Handoff Banner -->
+    <div class="ai-handoff-banner" *ngIf="conversation.aiHandoff && !agentTookOver">
+      <div class="banner-content">
+        <span class="icon">🤖</span>
+        <div class="text">
+          <strong>AI has escalated this conversation</strong>
+          <p>{{ conversation.escalationReason }}</p>
+        </div>
+      </div>
+      <button class="btn-takeover" (click)="takeOverFromAI()">
+        Take over from AI 👩‍💼
+      </button>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container">
+      <div *ngFor="let message of messages" 
+           class="message-wrapper"
+           [ngClass]="'message-' + message.sender">
+        
+        <div class="message">
+          <div class="message-avatar" *ngIf="message.sender !== 'system'">
+            <span *ngIf="message.sender === 'ai'">🤖</span>
+            <span *ngIf="message.sender === 'customer'">👤</span>
+            <span *ngIf="message.sender === 'agent'">👩‍💼</span>
+          </div>
+          
+          <div class="message-content">
+            <div class="message-bubble" [ngClass]="'bubble-' + message.sender">
+              <p>{{ message.text }}</p>
+            </div>
+            <span class="message-time">{{ message.timestamp }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Suggestions Modal -->
+    <div class="ai-suggestions-modal" *ngIf="showAISuggestions">
+      <div class="suggestions-header">
+        <h4>✨ AI Suggested Responses</h4>
+        <button class="btn-close" (click)="showAISuggestions = false">×</button>
+      </div>
+      <div class="suggestions-list">
+        <button 
+          *ngFor="let suggestion of getAISuggestions()" 
+          class="suggestion-item"
+          (click)="useSuggestion(suggestion)">
+          {{ suggestion }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Message Input -->
+    <div class="message-input" *ngIf="agentTookOver || !conversation.aiHandoff">
+      <div class="input-container">
+        <textarea 
+          [(ngModel)]="agentMessage"
+          placeholder="Type your message..."
+          rows="3"
+          (keydown.enter)="onKeydown($any($event))">
+        </textarea>
+        <button class="btn-attach" title="Attach file">📎</button>
+      </div>
+      <div class="input-actions">
+        <button class="btn-ai-suggest" (click)="toggleAISuggestions()">
+          ✨ AI Suggest
+        </button>
+        <button class="btn-send" (click)="sendMessage()">
+          Send
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

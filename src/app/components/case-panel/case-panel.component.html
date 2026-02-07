@@ -1,0 +1,129 @@
+<div class="case-panel">
+  <div *ngIf="!conversation" class="no-data">
+    <div class="empty-state">
+      <span class="icon">📋</span>
+      <p>Select a conversation to view details</p>
+    </div>
+  </div>
+
+  <div *ngIf="conversation" class="panel-content">
+    <!-- Case Header -->
+    <div class="panel-header">
+      <h3>Case #12456</h3>
+    </div>
+
+    <!-- Customer Info Card -->
+    <div class="card customer-card" *ngIf="customerInfo">
+      <div class="card-header">
+        <h4>Customer Info</h4>
+      </div>
+      <div class="card-body">
+        <div class="info-row">
+          <span class="label">Name:</span>
+          <span class="value">{{ customerInfo.name }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Email:</span>
+          <span class="value">{{ customerInfo.email }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Phone:</span>
+          <span class="value">{{ customerInfo.phone }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Account:</span>
+          <span class="value">{{ customerInfo.accountNumber }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Status:</span>
+          <span class="value status-active">{{ customerInfo.accountStatus }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Member Since:</span>
+          <span class="value">{{ customerInfo.memberSince }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Total Orders:</span>
+          <span class="value">{{ customerInfo.totalOrders }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Lifetime Value:</span>
+          <span class="value">{{ customerInfo.lifetimeValue }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Open Cases -->
+    <div class="card cases-card">
+      <div class="card-header">
+        <h4>Open Cases</h4>
+      </div>
+      <div class="card-body">
+        <div *ngFor="let case of openCases" class="case-item">
+          <div class="case-header">
+            <span class="case-id">{{ case.caseId }}</span>
+            <span class="case-priority" [ngClass]="getPriorityClass(case.priority)">
+              {{ case.priority }}
+            </span>
+          </div>
+          <div class="case-title">{{ case.title }}</div>
+          <div class="case-meta">
+            <span class="case-status">{{ case.status }}</span>
+            <span class="case-time">{{ case.createdAt }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Timeline -->
+    <div class="card activity-card">
+      <div class="card-header">
+        <h4>Activity</h4>
+      </div>
+      <div class="card-body">
+        <div class="timeline">
+          <div *ngFor="let item of activity" class="timeline-item">
+            <span class="timeline-icon">{{ item.icon }}</span>
+            <div class="timeline-content">
+              <p class="timeline-text">{{ item.text }}</p>
+              <span class="timeline-time">{{ item.timestamp }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Suggestions -->
+    <div class="card suggestions-card">
+      <div class="card-header">
+        <h4>✨ AI Suggestions</h4>
+      </div>
+      <div class="card-body">
+        <div *ngFor="let suggestion of aiSuggestions" 
+             class="suggestion-item"
+             (click)="handleAction(suggestion.action)">
+          <span class="suggestion-icon">{{ suggestion.icon }}</span>
+          <span class="suggestion-text">{{ suggestion.text }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card actions-card">
+      <div class="card-header">
+        <h4>Quick Actions</h4>
+      </div>
+      <div class="card-body">
+        <button class="action-btn primary" (click)="handleAction('create-case')">
+          📋 Create Case
+        </button>
+        <button class="action-btn secondary" (click)="handleAction('add-note')">
+          📝 Add Note
+        </button>
+        <button class="action-btn success" (click)="handleAction('close-case')">
+          ✅ Close Case
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
