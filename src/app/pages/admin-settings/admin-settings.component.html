@@ -36,60 +36,32 @@
       class="tab-button" 
       [class.active]="activeTab === 'queues'"
       (click)="setActiveTab('queues')">
-      📊 Queues
+      📋 Queues
     </button>
   </nav>
 
   <!-- Tab Content -->
   <div class="tab-content">
     
-    <!-- Tab 1: AI Agent -->
+    <!-- ============================== -->
+    <!-- Tab 1: AI Agent Configuration -->
+    <!-- ============================== -->
     <div class="tab-panel" *ngIf="activeTab === 'ai-agent'">
-      <h2 class="tab-title">AI Agent Configuration</h2>
+      <h2 class="tab-title">🤖 AI Agent Configuration</h2>
       
-      <!-- Agent Basic Settings -->
+      <!-- Section 1: Agent Settings -->
       <div class="settings-card">
-        <h3>Basic Settings</h3>
+        <h3>Agent Settings</h3>
         <div class="form-group">
           <label>Agent Name</label>
-          <input type="text" [(ngModel)]="agentName" class="form-input" />
+          <input type="text" [(ngModel)]="agentName" class="form-input" placeholder="Enter agent name" />
         </div>
         <div class="form-group">
           <label>Greeting Message</label>
-          <textarea [(ngModel)]="agentGreeting" class="form-textarea" rows="3"></textarea>
+          <textarea [(ngModel)]="agentGreeting" class="form-textarea" rows="3" placeholder="Enter greeting message"></textarea>
         </div>
-      </div>
-
-      <!-- Knowledge Base -->
-      <div class="settings-card">
-        <h3>Knowledge Base (12 Articles)</h3>
-        <div class="knowledge-grid">
-          <div class="knowledge-item" *ngFor="let article of knowledgeArticles">
-            <span class="article-icon">📄</span>
-            <div class="article-info">
-              <div class="article-title">{{ article.title }}</div>
-              <div class="article-category">{{ article.category }}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- FAQs -->
-      <div class="settings-card">
-        <h3>Frequently Asked Questions (18 FAQs)</h3>
-        <div class="faq-list">
-          <div class="faq-item" *ngFor="let faq of faqs">
-            <div class="faq-question">Q: {{ faq.question }}</div>
-            <div class="faq-answer">A: {{ faq.answer }}</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AI Model Settings -->
-      <div class="settings-card">
-        <h3>AI Model Settings</h3>
         <div class="form-group">
-          <label>Model Provider</label>
+          <label>AI Model</label>
           <select [(ngModel)]="aiModel" class="form-select">
             <option value="claude-3.5">AWS Bedrock - Claude 3.5 Sonnet</option>
             <option value="claude-3">AWS Bedrock - Claude 3 Opus</option>
@@ -97,7 +69,7 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Temperature: {{ temperature }}</label>
+          <label>Temperature: {{ temperature }} <span class="label-hint">(0 = focused, 1 = creative)</span></label>
           <input 
             type="range" 
             [(ngModel)]="temperature" 
@@ -105,200 +77,397 @@
             max="1" 
             step="0.1" 
             class="form-range" />
-          <div class="range-labels">
-            <span>Precise (0)</span>
-            <span>Balanced (0.5)</span>
-            <span>Creative (1)</span>
-          </div>
         </div>
         <div class="form-group">
-          <label class="checkbox-label">
-            <input type="checkbox" [(ngModel)]="autoEscalation" />
-            <span>Enable Auto-Escalation to Human Agents</span>
-          </label>
+          <label>Max Response Length</label>
+          <select [(ngModel)]="maxResponseLength" class="form-select">
+            <option value="250">250 tokens</option>
+            <option value="500">500 tokens</option>
+            <option value="1000">1000 tokens</option>
+            <option value="2000">2000 tokens</option>
+          </select>
         </div>
-        <button class="btn-primary" (click)="testAI()">🧪 Test AI Agent</button>
+        <div class="form-group">
+          <label>Auto-escalate to human after</label>
+          <select [(ngModel)]="autoEscalateAttempts" class="form-select">
+            <option [value]="1">1 failed attempt</option>
+            <option [value]="2">2 failed attempts</option>
+            <option [value]="3">3 failed attempts</option>
+            <option [value]="5">5 failed attempts</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Section 2: Knowledge Base -->
+      <div class="settings-card">
+        <h3>📚 Knowledge Base ({{ uploadedFiles.length }} Articles)</h3>
+        
+        <!-- File Upload Zone -->
+        <div class="file-upload-zone">
+          <div class="upload-icon">📤</div>
+          <p class="upload-text">Drag & drop files here</p>
+          <p class="upload-or">or</p>
+          <label for="file-input" class="btn-browse">Browse Files</label>
+          <input 
+            id="file-input" 
+            type="file" 
+            (change)="onFileSelect($event)" 
+            accept=".pdf,.docx,.txt" 
+            multiple 
+            style="display: none;" />
+          <p class="upload-hint">Supported formats: PDF, DOCX, TXT (Max 10MB each)</p>
+        </div>
+
+        <!-- Uploaded Files List -->
+        <div class="uploaded-files" *ngIf="uploadedFiles.length > 0">
+          <h4 class="files-header">Uploaded Articles:</h4>
+          <div class="file-list">
+            <div class="file-item" *ngFor="let file of uploadedFiles">
+              <span class="file-icon">{{ file.icon }}</span>
+              <span class="file-name">{{ file.name }}</span>
+              <span class="file-size">{{ file.size }}</span>
+              <button class="btn-delete" (click)="deleteFile(file.id)">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Custom Q&A -->
+      <div class="settings-card">
+        <h3>💬 Custom Q&A ({{ customQAs.length }} entries)</h3>
+        
+        <button class="btn-primary add-qa-btn" (click)="openAddQAModal()">+ Add Custom Answer</button>
+        
+        <div class="qa-list">
+          <div class="qa-item" *ngFor="let qa of customQAs">
+            <div class="qa-question">Q: {{ qa.question }}</div>
+            <div class="qa-answer">A: {{ qa.answer }}</div>
+            <div class="qa-actions">
+              <button class="btn-edit" (click)="openEditQAModal(qa)">Edit</button>
+              <button class="btn-delete-small" (click)="deleteQA(qa.id)">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4: Test AI Agent -->
+      <div class="settings-card">
+        <h3>Test AI Agent</h3>
+        <p class="section-description">Test your AI agent with sample questions to see how it responds based on your Knowledge Base and Custom Q&A.</p>
+        <button class="btn-primary" (click)="openTestAIModal()">🧪 Test AI Agent</button>
       </div>
     </div>
 
+    <!-- ====================== -->
     <!-- Tab 2: Channels -->
+    <!-- ====================== -->
     <div class="tab-panel" *ngIf="activeTab === 'channels'">
-      <h2 class="tab-title">Communication Channels</h2>
+      <h2 class="tab-title">📡 Channels</h2>
       
-      <div class="channels-grid">
-        <!-- WhatsApp Business -->
-        <div class="channel-card connected">
-          <div class="channel-header">
+      <!-- WhatsApp Business -->
+      <div class="channel-card connected">
+        <div class="channel-header">
+          <div class="channel-title-row">
             <span class="channel-icon">📱</span>
-            <h3>WhatsApp Business</h3>
-            <span class="status-badge connected">Connected</span>
+            <h3>WhatsApp Business API</h3>
           </div>
-          <div class="channel-body">
-            <div class="channel-detail">
-              <label>Phone Number:</label>
-              <span>{{ whatsappNumber }}</span>
+          <span class="status-badge connected">✅ Connected</span>
+        </div>
+        <div class="channel-body">
+          <div class="channel-info-row">
+            <span class="info-label">Status:</span>
+            <span class="info-value">Connected</span>
+          </div>
+          <div class="channel-info-row">
+            <span class="info-label">Phone:</span>
+            <span class="info-value">{{ whatsappPhone }}</span>
+          </div>
+          <div class="channel-info-row">
+            <span class="info-label">Conversations this month:</span>
+            <span class="info-value">{{ whatsappConversations }}</span>
+          </div>
+          
+          <div class="credentials-section">
+            <div class="form-group">
+              <label>Business Account ID</label>
+              <input type="text" [(ngModel)]="whatsappBusinessId" class="form-input" readonly />
             </div>
-            <div class="channel-detail">
-              <label>API Status:</label>
-              <span class="status-text success">Active</span>
+            <div class="form-group">
+              <label>Access Token</label>
+              <input type="text" [(ngModel)]="whatsappAccessToken" class="form-input" readonly />
             </div>
-            <button class="btn-secondary">View Credentials</button>
+            <div class="form-group">
+              <label>Phone Number ID</label>
+              <input type="text" [(ngModel)]="whatsappPhoneId" class="form-input" readonly />
+            </div>
+          </div>
+          
+          <div class="channel-actions">
+            <button class="btn-secondary" (click)="configureWhatsApp()">Configure</button>
+            <button class="btn-secondary" (click)="disconnectWhatsApp()">Disconnect</button>
+            <button class="btn-primary" (click)="testWhatsApp()">Test</button>
           </div>
         </div>
+      </div>
 
-        <!-- Webchat Widget -->
-        <div class="channel-card configured">
-          <div class="channel-header">
+      <!-- Webchat Widget -->
+      <div class="channel-card configured">
+        <div class="channel-header">
+          <div class="channel-title-row">
             <span class="channel-icon">💬</span>
             <h3>Webchat Widget</h3>
-            <span class="status-badge configured">Configured</span>
           </div>
-          <div class="channel-body">
-            <div class="form-group">
-              <label>Primary Color</label>
-              <div class="color-picker-wrapper">
-                <input type="color" [(ngModel)]="webchatColor" class="color-input" />
-                <span class="color-value">{{ webchatColor }}</span>
+          <span class="status-badge configured">✅ Active</span>
+        </div>
+        <div class="channel-body">
+          <div class="channel-info-row">
+            <span class="info-label">Status:</span>
+            <span class="info-value">Active</span>
+          </div>
+          <div class="channel-info-row">
+            <span class="info-label">Conversations this month:</span>
+            <span class="info-value">{{ webchatConversations }}</span>
+          </div>
+          
+          <div class="form-group">
+            <label>Widget Color 🎨</label>
+            <div class="color-picker-wrapper">
+              <input type="color" [(ngModel)]="webchatColor" class="color-input" />
+              <span class="color-value">{{ webchatColor }}</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Position</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="webchatPosition" value="bottom-right" name="position" />
+                <span>● Bottom Right</span>
+              </label>
+              <label class="radio-label">
+                <input type="radio" [(ngModel)]="webchatPosition" value="bottom-left" name="position" />
+                <span>○ Bottom Left</span>
+              </label>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Welcome Message</label>
+            <input type="text" [(ngModel)]="webchatWelcome" class="form-input" />
+          </div>
+          
+          <div class="form-group">
+            <label>Allowed Domains</label>
+            <div class="domain-list">
+              <div class="domain-item" *ngFor="let domain of webchatDomains">
+                <span class="domain-name">• {{ domain }}</span>
+                <button class="btn-remove" (click)="removeDomain(domain)">Remove</button>
               </div>
             </div>
-            <div class="form-group">
-              <label>Embed Code</label>
-              <textarea readonly [value]="embedCode" class="code-textarea" rows="2"></textarea>
-              <button class="btn-secondary" (click)="copyEmbedCode()">📋 Copy Code</button>
+            <div class="add-domain-row">
+              <input type="text" [(ngModel)]="newDomain" class="form-input" placeholder="Enter domain" />
+              <button class="btn-secondary" (click)="addDomain()">+ Add Domain</button>
             </div>
           </div>
+          
+          <div class="form-group">
+            <label>Embed Code</label>
+            <textarea readonly [value]="embedCode" class="code-textarea" rows="5"></textarea>
+          </div>
+          
+          <div class="channel-actions">
+            <button class="btn-secondary" (click)="copyEmbedCode()">📋 Copy Code</button>
+            <button class="btn-primary" (click)="previewWidget()">Preview Widget</button>
+          </div>
         </div>
+      </div>
 
-        <!-- Email -->
-        <div class="channel-card not-configured">
-          <div class="channel-header">
+      <!-- Email Channel -->
+      <div class="channel-card not-configured">
+        <div class="channel-header">
+          <div class="channel-title-row">
             <span class="channel-icon">📧</span>
-            <h3>Email</h3>
-            <span class="status-badge not-configured">Not Configured</span>
+            <h3>Email Channel</h3>
           </div>
-          <div class="channel-body">
-            <p>Connect your email support channel to handle customer inquiries via email.</p>
-            <button class="btn-primary">Configure Email</button>
-          </div>
+          <span class="status-badge not-configured">⏸️ Not configured</span>
         </div>
+        <div class="channel-body">
+          <p class="channel-description">Connect your email support channel to handle customer inquiries via email.</p>
+          <button class="btn-primary" (click)="setupEmail()">Setup Email Channel</button>
+        </div>
+      </div>
 
-        <!-- SMS -->
-        <div class="channel-card coming-soon">
-          <div class="channel-header">
+      <!-- SMS Channel -->
+      <div class="channel-card coming-soon">
+        <div class="channel-header">
+          <div class="channel-title-row">
             <span class="channel-icon">💌</span>
-            <h3>SMS</h3>
-            <span class="status-badge coming-soon">Coming Soon</span>
+            <h3>SMS Channel</h3>
           </div>
-          <div class="channel-body">
-            <p>SMS support channel will be available in the next release.</p>
-          </div>
+          <span class="status-badge coming-soon">🚀 Coming Soon</span>
+        </div>
+        <div class="channel-body">
+          <p class="channel-description">Two-way SMS launching Q2 2026</p>
         </div>
       </div>
     </div>
 
-    <!-- Tab 3: Users -->
+    <!-- ================================ -->
+    <!-- Tab 3: Users & Team Management -->
+    <!-- ================================ -->
     <div class="tab-panel" *ngIf="activeTab === 'users'">
-      <h2 class="tab-title">Team & Subscription</h2>
+      <h2 class="tab-title">👥 Users & Team Management</h2>
       
-      <!-- Subscription Card -->
+      <!-- Subscription Overview -->
       <div class="subscription-card">
         <div class="subscription-header">
-          <h3>💎 Current Subscription</h3>
-          <div class="subscription-price">
-            <span class="price">R{{ monthlyPrice }}</span>
-            <span class="period">/month</span>
-          </div>
+          <h3>💳 Subscription</h3>
+          <div class="plan-name">Plan: Professional</div>
         </div>
         <div class="subscription-body">
           <div class="seats-info">
+            <div class="seats-label">Agent Seats: {{ seatsUsed }} / {{ seatsTotal }} used</div>
             <div class="seats-visual">
               <div class="seats-used" [style.width.%]="(seatsUsed / seatsTotal) * 100"></div>
             </div>
-            <div class="seats-text">
-              <span class="seats-count">{{ seatsUsed }} / {{ seatsTotal }} seats used</span>
-              <span class="seats-available">{{ seatsTotal - seatsUsed }} seats available</span>
+          </div>
+          
+          <div class="cost-breakdown">
+            <h4>Monthly Cost:</h4>
+            <div class="cost-item">
+              <span>Base plan:</span>
+              <span>R{{ basePlanCost }}</span>
+            </div>
+            <div class="cost-item">
+              <span>Agent seats ({{ seatsUsed }} × R{{ seatCost }}):</span>
+              <span>R{{ seatsUsed * seatCost }}</span>
+            </div>
+            <div class="cost-item total">
+              <span>Total:</span>
+              <span>R{{ monthlyTotal }}/month</span>
             </div>
           </div>
-          <button class="btn-secondary">Upgrade Plan</button>
+          
+          <div class="billing-info">
+            <p>Next billing: March 7, 2026</p>
+          </div>
+          
+          <div class="subscription-actions">
+            <button class="btn-secondary" (click)="addMoreSeats()">Add More Seats</button>
+            <button class="btn-primary" (click)="upgradePlan()">Upgrade Plan</button>
+          </div>
         </div>
       </div>
 
       <!-- Team Members -->
       <div class="settings-card">
-        <h3>Team Members ({{ teamMembers.length }})</h3>
-        <div class="team-list">
-          <div class="team-member" *ngFor="let member of teamMembers">
-            <div class="member-avatar">{{ member.avatar }}</div>
-            <div class="member-info">
-              <div class="member-name">{{ member.name }}</div>
-              <div class="member-email">{{ member.email }}</div>
+        <div class="card-header-row">
+          <h3>👥 Team Members ({{ teamMembers.length }})</h3>
+          <button class="btn-primary" (click)="openAddUserModal()">+ Add User</button>
+        </div>
+        
+        <div class="team-table">
+          <div class="team-table-header">
+            <div class="col-name">Name</div>
+            <div class="col-role">Role</div>
+            <div class="col-status">Status</div>
+            <div class="col-queues">Queues</div>
+            <div class="col-actions">Actions</div>
+          </div>
+          
+          <div class="team-member-row" *ngFor="let member of teamMembers">
+            <div class="col-name">
+              <div class="member-avatar">{{ member.avatar }}</div>
+              <div class="member-info">
+                <div class="member-name">{{ member.name }}</div>
+                <div class="member-email">{{ member.email }}</div>
+                <div class="member-conversations" *ngIf="member.activeConversations > 0">
+                  Active conversations: {{ member.activeConversations }}
+                </div>
+              </div>
             </div>
-            <div class="member-role">{{ member.role }}</div>
-            <div class="member-status" [class.active]="member.status === 'Active'">
-              {{ member.status }}
+            <div class="col-role">{{ member.role }}</div>
+            <div class="col-status">
+              <span class="status-indicator">{{ member.statusColor }} {{ member.status }}</span>
+            </div>
+            <div class="col-queues">{{ member.queues }}</div>
+            <div class="col-actions">
+              <button class="btn-edit" (click)="editUser(member)">Edit</button>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Add User Form -->
-      <div class="settings-card">
-        <h3>Add New User</h3>
-        <div class="add-user-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Name</label>
-              <input type="text" [(ngModel)]="newUser.name" class="form-input" placeholder="Enter name" />
-            </div>
-            <div class="form-group">
-              <label>Email</label>
-              <input type="email" [(ngModel)]="newUser.email" class="form-input" placeholder="Enter email" />
-            </div>
-            <div class="form-group">
-              <label>Role</label>
-              <select [(ngModel)]="newUser.role" class="form-select">
-                <option value="Agent">Agent</option>
-                <option value="Team Lead">Team Lead</option>
-                <option value="Administrator">Administrator</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn-primary" (click)="addUser()">➕ Add User</button>
-        </div>
-        <div class="pricing-note">
-          💡 Each additional seat costs R59/month
         </div>
       </div>
     </div>
 
-    <!-- Tab 4: Queues -->
+    <!-- ============================ -->
+    <!-- Tab 4: Queues & Routing -->
+    <!-- ============================ -->
     <div class="tab-panel" *ngIf="activeTab === 'queues'">
-      <h2 class="tab-title">Queue Management</h2>
+      <h2 class="tab-title">📋 Queues & Routing</h2>
       
-      <!-- Queue Overview -->
+      <!-- Queues Overview -->
       <div class="settings-card">
-        <h3>Active Queues (5)</h3>
-        <div class="queues-grid">
-          <div class="queue-card" *ngFor="let queue of queues" [style.border-left-color]="queue.color">
-            <div class="queue-name">{{ queue.name }}</div>
-            <div class="queue-count">{{ queue.count }}</div>
-            <div class="queue-label">cases</div>
+        <div class="card-header-row">
+          <h3>📊 Queues</h3>
+          <button class="btn-primary" (click)="createQueue()">+ Create Queue</button>
+        </div>
+        
+        <div class="queues-table">
+          <div class="queue-table-header">
+            <div class="col-queue">Queue</div>
+            <div class="col-agents">Agents</div>
+            <div class="col-cases">Cases</div>
+            <div class="col-wait">Avg Wait</div>
+            <div class="col-priority">Priority</div>
+            <div class="col-actions">Actions</div>
+          </div>
+          
+          <div class="queue-row" *ngFor="let queue of queues">
+            <div class="col-queue">
+              <span class="queue-icon">{{ queue.icon }}</span>
+              <span class="queue-name">{{ queue.name }}</span>
+            </div>
+            <div class="col-agents">{{ queue.agents }}</div>
+            <div class="col-cases">{{ queue.cases }}</div>
+            <div class="col-wait">{{ queue.avgWait }}</div>
+            <div class="col-priority">
+              <span class="priority-badge" [class]="'priority-' + queue.priority.toLowerCase()">
+                {{ queue.priority }}
+              </span>
+            </div>
+            <div class="col-actions">
+              <button class="btn-edit" (click)="editQueue(queue)">Edit</button>
+              <button class="btn-delete-small" (click)="deleteQueue(queue)">Delete</button>
+              <button class="btn-link" (click)="viewQueueCases(queue.name)">View Cases</button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Routing Rules -->
       <div class="settings-card">
-        <h3>Routing Rules (4)</h3>
+        <div class="card-header-row">
+          <h3>🔀 Routing Rules ({{ routingRules.length }} active)</h3>
+          <button class="btn-primary" (click)="addRoutingRule()">+ Add Rule</button>
+        </div>
+        
         <div class="rules-list">
-          <div class="rule-item" *ngFor="let rule of routingRules; let i = index">
-            <div class="rule-number">{{ i + 1 }}</div>
-            <div class="rule-info">
-              <div class="rule-name">{{ rule.name }}</div>
-              <div class="rule-condition">{{ rule.condition }}</div>
+          <div class="rule-card" *ngFor="let rule of routingRules">
+            <div class="rule-header">
+              <h4>Rule {{ rule.id }}: {{ rule.name }}</h4>
+              <label class="toggle-switch">
+                <input type="checkbox" [(ngModel)]="rule.enabled" (change)="toggleRule(rule)" />
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">{{ rule.enabled ? 'Enabled' : 'Disabled' }}</span>
+              </label>
             </div>
-            <div class="rule-queue">
-              <span class="queue-badge">→ {{ rule.queue }}</span>
+            <div class="rule-body">
+              <div class="rule-condition">{{ rule.condition }}</div>
+              <div class="rule-action">→ {{ rule.action }}</div>
+            </div>
+            <div class="rule-actions">
+              <button class="btn-edit" (click)="editRule(rule)">Edit</button>
+              <button class="btn-delete-small" (click)="deleteRule(rule.id)">Delete</button>
             </div>
           </div>
         </div>
@@ -306,50 +475,163 @@
 
       <!-- SLA Settings -->
       <div class="settings-card">
-        <h3>SLA Settings</h3>
-        <div class="sla-grid">
-          <div class="sla-item">
-            <label>Standard SLA</label>
-            <div class="sla-value">{{ slaSettings.standard }}</div>
+        <h3>⏱️ SLA Settings</h3>
+        
+        <div class="sla-form">
+          <div class="form-group">
+            <label>First Response Target</label>
+            <select [(ngModel)]="slaSettings.firstResponse" class="form-select">
+              <option value="5 minutes">5 minutes</option>
+              <option value="15 minutes">15 minutes</option>
+              <option value="30 minutes">30 minutes</option>
+              <option value="1 hour">1 hour</option>
+            </select>
           </div>
-          <div class="sla-item">
-            <label>VIP SLA</label>
-            <div class="sla-value">{{ slaSettings.vip }}</div>
+          
+          <div class="form-group">
+            <label>Resolution Target</label>
+            <select [(ngModel)]="slaSettings.resolution" class="form-select">
+              <option value="4 hours">4 hours</option>
+              <option value="8 hours">8 hours</option>
+              <option value="24 hours">24 hours</option>
+              <option value="48 hours">48 hours</option>
+            </select>
           </div>
-          <div class="sla-item">
-            <label>Business Hours</label>
-            <div class="sla-value">{{ slaSettings.businessHours }}</div>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="slaSettings.autoEscalate" />
+              <span>Auto-escalate if SLA breached</span>
+            </label>
           </div>
-        </div>
-      </div>
-
-      <!-- Queue Metrics -->
-      <div class="settings-card">
-        <h3>Queue Metrics (Last 24 Hours)</h3>
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-icon">📥</div>
-            <div class="metric-value">62</div>
-            <div class="metric-label">Total Cases</div>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="slaSettings.notifyManager" />
+              <span>Notify manager on escalation</span>
+            </label>
           </div>
-          <div class="metric-card">
-            <div class="metric-icon">⏱️</div>
-            <div class="metric-value">2.4h</div>
-            <div class="metric-label">Avg Response Time</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon">✅</div>
-            <div class="metric-value">45</div>
-            <div class="metric-label">Resolved</div>
-          </div>
-          <div class="metric-card">
-            <div class="metric-icon">⚡</div>
-            <div class="metric-value">95%</div>
-            <div class="metric-label">SLA Compliance</div>
+          
+          <div class="business-hours-section">
+            <h4>Business Hours</h4>
+            <div class="business-hours-info">
+              <p>{{ slaSettings.businessHours }}</p>
+              <p>Timezone: {{ slaSettings.timezone }}</p>
+            </div>
+            <button class="btn-secondary" (click)="configureBusinessHours()">Configure Business Hours</button>
           </div>
         </div>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ==================== -->
+<!-- Modals -->
+<!-- ==================== -->
+
+<!-- Add/Edit Custom Q&A Modal -->
+<div class="modal-overlay" *ngIf="showAddQAModal" (click)="closeAddQAModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ editingQA ? 'Edit' : 'Add' }} Custom Q&A</h3>
+      <button class="modal-close" (click)="closeAddQAModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Question:</label>
+        <input type="text" [(ngModel)]="newQA.question" class="form-input" placeholder="What are your business hours?" />
+      </div>
+      <div class="form-group">
+        <label>Answer:</label>
+        <textarea [(ngModel)]="newQA.answer" class="form-textarea" rows="4" 
+          placeholder="We're open Monday to Friday, 9:00 AM - 5:00 PM SAST. Closed on weekends and public holidays."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeAddQAModal()">Cancel</button>
+      <button class="btn-primary" (click)="saveQA()">{{ editingQA ? 'Update' : 'Add Answer' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Test AI Modal -->
+<div class="modal-overlay" *ngIf="showTestAIModal" (click)="closeTestAIModal()">
+  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🧪 Test AI Agent</h3>
+      <button class="modal-close" (click)="closeTestAIModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="test-chat-container">
+        <div class="test-messages">
+          <div *ngIf="testMessages.length === 0" class="test-welcome">
+            <p>👋 Welcome to the AI Test Console</p>
+            <p>Type a question below to test how your AI agent responds.</p>
+          </div>
+          <div *ngFor="let msg of testMessages" class="test-message" [class]="'test-message-' + msg.sender">
+            <div class="message-bubble">
+              <div class="message-text">{{ msg.message }}</div>
+              <div class="message-source" *ngIf="msg.source">{{ msg.source }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="test-input-row">
+          <input 
+            type="text" 
+            [(ngModel)]="testUserInput" 
+            (keyup.enter)="sendTestMessage()"
+            class="form-input" 
+            placeholder="Type your test question..." />
+          <button class="btn-primary" (click)="sendTestMessage()">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" *ngIf="showAddUserModal" (click)="closeAddUserModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Add New User</h3>
+      <button class="modal-close" (click)="closeAddUserModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Name:</label>
+        <input type="text" [(ngModel)]="newUser.name" class="form-input" placeholder="Enter name" />
+      </div>
+      <div class="form-group">
+        <label>Email:</label>
+        <input type="email" [(ngModel)]="newUser.email" class="form-input" placeholder="Enter email" />
+      </div>
+      <div class="form-group">
+        <label>Role:</label>
+        <select [(ngModel)]="newUser.role" class="form-select">
+          <option value="Agent">Agent</option>
+          <option value="Manager">Manager</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Assigned Queues:</label>
+        <div class="queue-checkboxes">
+          <label class="checkbox-label" *ngFor="let queue of availableQueues">
+            <input type="checkbox" [checked]="isQueueSelected(queue)" (change)="toggleQueue(queue)" />
+            <span>{{ queue }}</span>
+          </label>
+        </div>
+      </div>
+      <div class="warning-message">
+        ⚠️ Adding a user will consume 1 seat<br>
+        Available seats: {{ seatsTotal - seatsUsed }}
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeAddUserModal()">Cancel</button>
+      <button class="btn-primary" (click)="addUser()">Send Invitation</button>
+    </div>
   </div>
 </div>
