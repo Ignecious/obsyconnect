@@ -218,13 +218,20 @@ export class AdminSettingsComponent implements OnInit {
       
       // Validate file type
       if (!['pdf', 'docx', 'txt', 'doc'].includes(fileExtension)) {
-        alert(`Invalid file type: ${file.name}. Only PDF, DOCX, and TXT files are supported.`);
+        alert(`Invalid file type: ${file.name}. Only PDF, DOCX, DOC, and TXT files are supported.`);
+        continue;
+      }
+      
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (file.size > maxSize) {
+        alert(`File too large: ${file.name}. Maximum file size is 10MB.`);
         continue;
       }
       
       // Create new article with upload progress
       const newArticle: KnowledgeArticle = {
-        id: Date.now() + i,
+        id: Date.now() * 1000 + i,
         title: file.name.replace(/\.[^/.]+$/, ''),
         category: 'Uploaded',
         fileType: fileExtension,
@@ -298,8 +305,8 @@ export class AdminSettingsComponent implements OnInit {
     }
     
     if (this.currentFaq.id === 0) {
-      // Add new FAQ
-      this.currentFaq.id = Date.now();
+      // Add new FAQ with unique ID
+      this.currentFaq.id = Date.now() + Math.floor(Math.random() * 1000);
       this.faqs.unshift(this.currentFaq);
     } else {
       // Update existing FAQ
@@ -336,10 +343,14 @@ export class AdminSettingsComponent implements OnInit {
     let response = '';
     let source = '';
     
-    // Match against FAQs
-    const matchedFaq = this.faqs.find(f => 
-      keywords.includes(f.question.toLowerCase().split(' ').slice(0, 2).join(' '))
-    );
+    // Match against FAQs - improved matching logic
+    const matchedFaq = this.faqs.find(f => {
+      const faqQuestion = f.question.toLowerCase();
+      const messageWords = keywords.split(' ').filter(w => w.length > 3);
+      // Check if at least 2 significant words from the FAQ question appear in the user message
+      const matchingWords = messageWords.filter(word => faqQuestion.includes(word));
+      return matchingWords.length >= 2 || faqQuestion.includes(keywords.slice(0, 20));
+    });
     
     if (matchedFaq) {
       response = matchedFaq.answer;
