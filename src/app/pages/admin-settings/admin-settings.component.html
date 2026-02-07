@@ -62,25 +62,80 @@
 
       <!-- Knowledge Base -->
       <div class="settings-card">
-        <h3>Knowledge Base (12 Articles)</h3>
+        <div class="card-header-with-action">
+          <h3>Knowledge Base ({{ knowledgeArticles.length }} Articles)</h3>
+        </div>
+        
+        <!-- File Upload Area -->
+        <div 
+          class="file-upload-area" 
+          [class.dragging]="isDragging"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)">
+          <div class="upload-icon">📤</div>
+          <div class="upload-text">
+            <strong>Drag & drop files here</strong>
+            <span>or</span>
+            <label class="file-input-label">
+              <input 
+                type="file" 
+                multiple 
+                accept=".pdf,.docx,.txt,.doc"
+                (change)="onFileSelect($event)"
+                style="display: none" />
+              <span class="btn-upload">Browse Files</span>
+            </label>
+          </div>
+          <div class="upload-hint">Supported formats: PDF, DOCX, TXT (Max 10MB each)</div>
+        </div>
+        
         <div class="knowledge-grid">
           <div class="knowledge-item" *ngFor="let article of knowledgeArticles">
-            <span class="article-icon">📄</span>
+            <span class="article-icon">{{ getFileIcon(article.fileType) }}</span>
             <div class="article-info">
               <div class="article-title">{{ article.title }}</div>
-              <div class="article-category">{{ article.category }}</div>
+              <div class="article-meta">
+                <span class="article-category">{{ article.category }}</span>
+                <span class="article-separator">•</span>
+                <span class="article-size">{{ article.size }}</span>
+                <span class="article-separator">•</span>
+                <span class="article-date">{{ article.uploadDate }}</span>
+              </div>
+              <div class="upload-progress" *ngIf="article.uploading">
+                <div class="progress-bar">
+                  <div class="progress-fill" [style.width.%]="article.uploadProgress"></div>
+                </div>
+                <span class="progress-text">{{ article.uploadProgress }}%</span>
+              </div>
             </div>
+            <button 
+              class="btn-delete" 
+              (click)="deleteArticle(article.id)"
+              [disabled]="article.uploading"
+              title="Delete article">
+              🗑️
+            </button>
           </div>
         </div>
       </div>
 
       <!-- FAQs -->
       <div class="settings-card">
-        <h3>Frequently Asked Questions (18 FAQs)</h3>
+        <div class="card-header-with-action">
+          <h3>Frequently Asked Questions ({{ faqs.length }} FAQs)</h3>
+          <button class="btn-primary btn-sm" (click)="openFaqModal()">➕ Add FAQ</button>
+        </div>
         <div class="faq-list">
           <div class="faq-item" *ngFor="let faq of faqs">
-            <div class="faq-question">Q: {{ faq.question }}</div>
-            <div class="faq-answer">A: {{ faq.answer }}</div>
+            <div class="faq-content">
+              <div class="faq-question">Q: {{ faq.question }}</div>
+              <div class="faq-answer">A: {{ faq.answer }}</div>
+            </div>
+            <div class="faq-actions">
+              <button class="btn-icon" (click)="editFaq(faq)" title="Edit FAQ">✏️</button>
+              <button class="btn-icon" (click)="deleteFaq(faq.id)" title="Delete FAQ">🗑️</button>
+            </div>
           </div>
         </div>
       </div>
@@ -112,12 +167,62 @@
           </div>
         </div>
         <div class="form-group">
+          <label>Max Tokens</label>
+          <input 
+            type="number" 
+            [(ngModel)]="maxTokens" 
+            class="form-input" 
+            min="256" 
+            max="4096" 
+            step="256" />
+          <div class="input-hint">Maximum response length (256-4096 tokens)</div>
+        </div>
+        <div class="form-group">
           <label class="checkbox-label">
             <input type="checkbox" [(ngModel)]="autoEscalation" />
             <span>Enable Auto-Escalation to Human Agents</span>
           </label>
         </div>
-        <button class="btn-primary" (click)="testAI()">🧪 Test AI Agent</button>
+        <div class="form-group" *ngIf="autoEscalation">
+          <label>Escalation Keywords</label>
+          <input 
+            type="text" 
+            [(ngModel)]="escalationKeywords" 
+            class="form-input" 
+            placeholder="e.g., refund, complaint, urgent" />
+          <div class="input-hint">Comma-separated keywords that trigger human handoff</div>
+        </div>
+      </div>
+      
+      <!-- Test AI Agent -->
+      <div class="settings-card">
+        <h3>Test AI Agent</h3>
+        <button class="btn-primary" (click)="testAI()">
+          {{ showTestPanel ? '❌ Close Test Panel' : '🧪 Open Test Panel' }}
+        </button>
+        
+        <div class="test-panel" *ngIf="showTestPanel">
+          <div class="test-chat">
+            <div class="test-input-group">
+              <input 
+                type="text" 
+                [(ngModel)]="testMessage" 
+                (keyup.enter)="sendTestMessage()"
+                class="test-input" 
+                placeholder="Type a test message..." />
+              <button class="btn-send" (click)="sendTestMessage()">Send</button>
+            </div>
+            
+            <div class="test-response" *ngIf="testResponse">
+              <div class="response-label">AI Response:</div>
+              <div class="response-text">{{ testResponse }}</div>
+              <div class="response-source" *ngIf="referencedSource">
+                <span class="source-icon">📚</span>
+                <span>{{ referencedSource }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -351,5 +456,39 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- FAQ Modal -->
+<div class="modal-overlay" *ngIf="showFaqModal" (click)="closeFaqModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ currentFaq.id === 0 ? 'Add New FAQ' : 'Edit FAQ' }}</h3>
+      <button class="modal-close" (click)="closeFaqModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Question *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="currentFaq.question" 
+          class="form-input" 
+          placeholder="Enter the question" />
+      </div>
+      <div class="form-group">
+        <label>Answer *</label>
+        <textarea 
+          [(ngModel)]="currentFaq.answer" 
+          class="form-textarea" 
+          rows="5"
+          placeholder="Enter the answer"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeFaqModal()">Cancel</button>
+      <button class="btn-primary" (click)="saveFaq()">
+        {{ currentFaq.id === 0 ? 'Add FAQ' : 'Save Changes' }}
+      </button>
+    </div>
   </div>
 </div>
