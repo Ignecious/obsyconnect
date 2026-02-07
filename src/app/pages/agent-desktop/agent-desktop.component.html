@@ -1,0 +1,41 @@
+<div class="agent-desktop">
+  <!-- Header -->
+  <header class="desktop-header">
+    <div class="header-left">
+      <span class="logo">🔵 ObsyConnect</span>
+      <nav class="main-nav">
+        <a href="#" class="nav-link">Dashboard</a>
+        <a href="#" class="nav-link active">Conversations</a>
+        <a href="#" class="nav-link">Cases</a>
+        <a href="#" class="nav-link">Reports</a>
+      </nav>
+    </div>
+    <div class="header-right">
+      <span class="agent-profile">👤 Sarah Agent</span>
+    </div>
+  </header>
+
+  <!-- Main 3-Panel Layout -->
+  <div class="desktop-main">
+    <!-- Left Panel - Conversation List -->
+    <aside class="inbox-panel">
+      <app-conversation-list 
+        (conversationSelected)="onConversationSelect($event)">
+      </app-conversation-list>
+    </aside>
+
+    <!-- Middle Panel - Conversation View -->
+    <main class="conversation-panel">
+      <app-conversation-view 
+        [conversation]="selectedConversation">
+      </app-conversation-view>
+    </main>
+
+    <!-- Right Panel - Case Details -->
+    <aside class="details-panel">
+      <app-case-panel 
+        [conversation]="selectedConversation">
+      </app-case-panel>
+    </aside>
+  </div>
+</div>

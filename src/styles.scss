@@ -12,6 +12,29 @@
   --dark-navy: #1C1F4A;
   --text-dark: #2C2C2C;
   --text-light: #9CA3AF;
+
+  /* ObsyConnect Agent Desktop Colors */
+  --purple-dark: #7C3AED;
+  --purple-light: rgba(168, 85, 247, 0.1);
+  --purple-glow: rgba(168, 85, 247, 0.3);
+  
+  /* Backgrounds */
+  --bg-dark: #0F172A;
+  --surface-dark: #1E293B;
+  --surface-light: #334155;
+  
+  /* Status Colors */
+  --status-new: #3B82F6;
+  --status-active: #F59E0B;
+  --status-closed: #10B981;
+  --status-ai: #A855F7;
+  
+  /* Text */
+  --text-white: #FFFFFF;
+  --text-grey: #94A3B8;
+  
+  /* Borders */
+  --border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Reset & Base Styles */
