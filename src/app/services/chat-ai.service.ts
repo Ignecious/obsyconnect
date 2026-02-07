@@ -121,7 +121,7 @@ export class ChatAIService {
     }
 
     // 8. Contact Agent
-    if (this.matchesKeywords(message, ['talk to human', 'speak to agent', 'live person', 'representative', 'real person'])) {
+    if (this.matchesKeywords(message, ['talk to human', 'speak to agent', 'talk to agent', 'live person', 'representative', 'real person'])) {
       return "Of course! Connecting you with a live agent...\n\n✅ Case #SUP-456 created\nAverage wait time: 2-3 minutes\n\nI'll stay here while you wait!";
     }
 
