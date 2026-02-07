@@ -1,18 +1,24 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 
 interface KnowledgeArticle {
   id: number;
   title: string;
   category: string;
+  fileType: string;
+  size: string;
+  uploadDate: string;
+  uploading?: boolean;
+  uploadProgress?: number;
 }
 
 interface FAQ {
   id: number;
   question: string;
   answer: string;
+  editing?: boolean;
 }
 
 interface Channel {
@@ -44,33 +50,49 @@ interface RoutingRule {
 @Component({
   selector: 'app-admin-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './admin-settings.component.html',
   styleUrl: './admin-settings.component.scss'
 })
-export class AdminSettingsComponent {
+export class AdminSettingsComponent implements OnInit {
   activeTab: string = 'ai-agent';
+  isDragging: boolean = false;
+  showFaqModal: boolean = false;
+  showTestPanel: boolean = false;
+  
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
   
   // AI Agent Tab Data
   agentName: string = 'ObsyBot';
   agentGreeting: string = 'Hello! I\'m ObsyBot, your AI assistant. How can I help you today?';
   aiModel: string = 'claude-3.5';
   temperature: number = 0.7;
+  maxTokens: number = 2048;
   autoEscalation: boolean = true;
+  escalationKeywords: string = 'refund, complaint, urgent, cancel subscription';
+  
+  // FAQ Form Data
+  currentFaq: FAQ = { id: 0, question: '', answer: '' };
+  testMessage: string = '';
+  testResponse: string = '';
+  referencedSource: string = '';
   
   knowledgeArticles: KnowledgeArticle[] = [
-    { id: 1, title: 'Getting Started Guide', category: 'Onboarding' },
-    { id: 2, title: 'Account Setup Instructions', category: 'Onboarding' },
-    { id: 3, title: 'Billing & Payments FAQ', category: 'Billing' },
-    { id: 4, title: 'Subscription Plans Overview', category: 'Billing' },
-    { id: 5, title: 'Troubleshooting Login Issues', category: 'Technical' },
-    { id: 6, title: 'API Integration Guide', category: 'Technical' },
-    { id: 7, title: 'WhatsApp Setup Tutorial', category: 'Channels' },
-    { id: 8, title: 'Webchat Widget Configuration', category: 'Channels' },
-    { id: 9, title: 'Data Security & Privacy', category: 'Security' },
-    { id: 10, title: 'GDPR Compliance Information', category: 'Security' },
-    { id: 11, title: 'Team Management Best Practices', category: 'Admin' },
-    { id: 12, title: 'Advanced Routing Rules', category: 'Admin' }
+    { id: 1, title: 'Getting Started Guide', category: 'Onboarding', fileType: 'pdf', size: '2.4 MB', uploadDate: '2024-01-15' },
+    { id: 2, title: 'Account Setup Instructions', category: 'Onboarding', fileType: 'docx', size: '1.8 MB', uploadDate: '2024-01-16' },
+    { id: 3, title: 'Billing & Payments FAQ', category: 'Billing', fileType: 'pdf', size: '1.2 MB', uploadDate: '2024-01-18' },
+    { id: 4, title: 'Subscription Plans Overview', category: 'Billing', fileType: 'pdf', size: '3.1 MB', uploadDate: '2024-01-20' },
+    { id: 5, title: 'Troubleshooting Login Issues', category: 'Technical', fileType: 'txt', size: '456 KB', uploadDate: '2024-01-22' },
+    { id: 6, title: 'API Integration Guide', category: 'Technical', fileType: 'pdf', size: '4.2 MB', uploadDate: '2024-01-25' },
+    { id: 7, title: 'WhatsApp Setup Tutorial', category: 'Channels', fileType: 'docx', size: '2.1 MB', uploadDate: '2024-01-27' },
+    { id: 8, title: 'Webchat Widget Configuration', category: 'Channels', fileType: 'pdf', size: '1.5 MB', uploadDate: '2024-01-28' },
+    { id: 9, title: 'Data Security & Privacy', category: 'Security', fileType: 'pdf', size: '3.8 MB', uploadDate: '2024-02-01' },
+    { id: 10, title: 'GDPR Compliance Information', category: 'Security', fileType: 'txt', size: '890 KB', uploadDate: '2024-02-03' },
+    { id: 11, title: 'Team Management Best Practices', category: 'Admin', fileType: 'docx', size: '1.9 MB', uploadDate: '2024-02-05' },
+    { id: 12, title: 'Advanced Routing Rules', category: 'Admin', fileType: 'pdf', size: '2.7 MB', uploadDate: '2024-02-06' }
   ];
   
   faqs: FAQ[] = [
@@ -143,12 +165,203 @@ export class AdminSettingsComponent {
     businessHours: '08:00 - 17:00 SAST'
   };
   
+  ngOnInit() {
+    // Check for tab query parameter
+    this.route.queryParams.subscribe(params => {
+      if (params['tab']) {
+        this.activeTab = params['tab'];
+      }
+    });
+  }
+  
   setActiveTab(tab: string) {
     this.activeTab = tab;
+    // Update URL with query param
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tab },
+      queryParamsHandling: 'merge'
+    });
+  }
+  
+  // File Upload Methods
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging = true;
+  }
+  
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging = false;
+  }
+  
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    this.isDragging = false;
+    const files = event.dataTransfer?.files;
+    if (files) {
+      this.handleFiles(files);
+    }
+  }
+  
+  onFileSelect(event: any) {
+    const files = event.target.files;
+    if (files) {
+      this.handleFiles(files);
+    }
+  }
+  
+  handleFiles(files: FileList) {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+      
+      // Validate file type
+      if (!['pdf', 'docx', 'txt', 'doc'].includes(fileExtension)) {
+        alert(`Invalid file type: ${file.name}. Only PDF, DOCX, and TXT files are supported.`);
+        continue;
+      }
+      
+      // Create new article with upload progress
+      const newArticle: KnowledgeArticle = {
+        id: Date.now() + i,
+        title: file.name.replace(/\.[^/.]+$/, ''),
+        category: 'Uploaded',
+        fileType: fileExtension,
+        size: this.formatFileSize(file.size),
+        uploadDate: new Date().toISOString().split('T')[0],
+        uploading: true,
+        uploadProgress: 0
+      };
+      
+      this.knowledgeArticles.unshift(newArticle);
+      
+      // Simulate upload progress
+      this.simulateUpload(newArticle);
+    }
+  }
+  
+  formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  
+  simulateUpload(article: KnowledgeArticle) {
+    const interval = setInterval(() => {
+      if (article.uploadProgress! < 100) {
+        article.uploadProgress = article.uploadProgress! + 10;
+      } else {
+        article.uploading = false;
+        clearInterval(interval);
+      }
+    }, 200);
+  }
+  
+  deleteArticle(id: number) {
+    if (confirm('Are you sure you want to delete this article?')) {
+      this.knowledgeArticles = this.knowledgeArticles.filter(a => a.id !== id);
+    }
+  }
+  
+  getFileIcon(fileType: string): string {
+    switch (fileType) {
+      case 'pdf': return '📕';
+      case 'docx':
+      case 'doc': return '📘';
+      case 'txt': return '📄';
+      default: return '📄';
+    }
+  }
+  
+  // FAQ Methods
+  openFaqModal() {
+    this.currentFaq = { id: 0, question: '', answer: '' };
+    this.showFaqModal = true;
+  }
+  
+  editFaq(faq: FAQ) {
+    this.currentFaq = { ...faq };
+    this.showFaqModal = true;
+  }
+  
+  deleteFaq(id: number) {
+    if (confirm('Are you sure you want to delete this FAQ?')) {
+      this.faqs = this.faqs.filter(f => f.id !== id);
+    }
+  }
+  
+  saveFaq() {
+    if (!this.currentFaq.question || !this.currentFaq.answer) {
+      alert('Please fill in both question and answer fields.');
+      return;
+    }
+    
+    if (this.currentFaq.id === 0) {
+      // Add new FAQ
+      this.currentFaq.id = Date.now();
+      this.faqs.unshift(this.currentFaq);
+    } else {
+      // Update existing FAQ
+      const index = this.faqs.findIndex(f => f.id === this.currentFaq.id);
+      if (index !== -1) {
+        this.faqs[index] = { ...this.currentFaq };
+      }
+    }
+    
+    this.closeFaqModal();
+  }
+  
+  closeFaqModal() {
+    this.showFaqModal = false;
+    this.currentFaq = { id: 0, question: '', answer: '' };
   }
   
   testAI() {
-    alert('AI Test: "Hello! I\'m ObsyBot, your AI assistant. How can I help you today?"');
+    this.showTestPanel = !this.showTestPanel;
+    if (this.showTestPanel) {
+      this.testMessage = '';
+      this.testResponse = '';
+      this.referencedSource = '';
+    }
+  }
+  
+  sendTestMessage() {
+    if (!this.testMessage.trim()) {
+      return;
+    }
+    
+    // Simulate AI response with reference to knowledge base
+    const keywords = this.testMessage.toLowerCase();
+    let response = '';
+    let source = '';
+    
+    // Match against FAQs
+    const matchedFaq = this.faqs.find(f => 
+      keywords.includes(f.question.toLowerCase().split(' ').slice(0, 2).join(' '))
+    );
+    
+    if (matchedFaq) {
+      response = matchedFaq.answer;
+      source = `Referenced from FAQ: "${matchedFaq.question}"`;
+    } else {
+      // Match against knowledge articles
+      const matchedArticle = this.knowledgeArticles.find(a => 
+        keywords.includes(a.category.toLowerCase()) || 
+        keywords.includes(a.title.toLowerCase().split(' ')[0].toLowerCase())
+      );
+      
+      if (matchedArticle) {
+        response = `Based on our ${matchedArticle.category} documentation, I can help you with that. The information is detailed in our "${matchedArticle.title}" guide.`;
+        source = `Referenced from Knowledge Base: "${matchedArticle.title}" (${matchedArticle.category})`;
+      } else {
+        response = this.agentGreeting + ' I don\'t have specific information about that in my knowledge base. Would you like me to escalate this to a human agent?';
+        source = 'No specific knowledge base match found - using default greeting';
+      }
+    }
+    
+    this.testResponse = response;
+    this.referencedSource = source;
   }
   
   copyEmbedCode() {
