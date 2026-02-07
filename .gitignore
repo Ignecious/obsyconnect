@@ -3,3 +3,14 @@ node_modules/
 dist/
 *.log
 *.tsbuildinfo
+.angular/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+package-lock.json
+src/favicon.ico
+IMPLEMENTATION_SUMMARY.md

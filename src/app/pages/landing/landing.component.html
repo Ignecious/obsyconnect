@@ -1,0 +1,182 @@
+<!-- Navigation Bar -->
+<nav class="navbar">
+  <div class="container">
+    <div class="nav-content">
+      <div class="logo">
+        <div class="logo-icon">O</div>
+        <span class="logo-text">ObsyConnect</span>
+      </div>
+      
+      <!-- Desktop Navigation -->
+      <div class="nav-links desktop-nav">
+        <a href="#features" (click)="scrollToSection('features')" class="nav-link">Features</a>
+        <a href="#pricing" (click)="scrollToSection('pricing')" class="nav-link">Pricing</a>
+        <a href="#contact" (click)="scrollToSection('contact')" class="nav-link">Contact</a>
+        <button class="btn-primary">Start Free Trial</button>
+      </div>
+
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Toggle menu">
+        <span class="hamburger" [class.open]="mobileMenuOpen"></span>
+      </button>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" [class.open]="mobileMenuOpen">
+      <a href="#features" (click)="scrollToSection('features')" class="nav-link">Features</a>
+      <a href="#pricing" (click)="scrollToSection('pricing')" class="nav-link">Pricing</a>
+      <a href="#contact" (click)="scrollToSection('contact')" class="nav-link">Contact</a>
+      <button class="btn-primary">Start Free Trial</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Africa's AI-Powered <br />
+        <span class="text-purple">Customer Support Platform</span>
+      </h1>
+      <p class="hero-subtitle">
+        Connect with customers on WhatsApp, email, and webchat — with AI that works 24/7
+      </p>
+      <div class="hero-cta">
+        <button class="btn-primary">Start Free Trial</button>
+        <button class="btn-secondary">Book a Demo</button>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="gradient-blob"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section section">
+  <div class="container">
+    <h2 class="text-center mb-3">Everything you need to delight customers</h2>
+    <div class="features-grid">
+      <div class="feature-card" *ngFor="let feature of features">
+        <div class="feature-icon">{{ feature.icon }}</div>
+        <h3>{{ feature.title }}</h3>
+        <p class="text-light">{{ feature.description }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section section">
+  <div class="container">
+    <h2 class="text-center mb-3">How it works</h2>
+    <div class="steps-container">
+      <div class="step" *ngFor="let step of workSteps; let isLast = last">
+        <div class="step-number">{{ step.number }}</div>
+        <div class="step-content">
+          <h3>{{ step.title }}</h3>
+          <p class="text-light">{{ step.description }}</p>
+        </div>
+        <div class="step-connector" *ngIf="!isLast">
+          <div class="arrow">→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing Section -->
+<section id="pricing" class="pricing-section section">
+  <div class="container">
+    <h2 class="text-center mb-3">Simple, transparent pricing</h2>
+    <p class="text-center text-light mb-3">Choose the plan that fits your business</p>
+    <div class="pricing-grid">
+      <div 
+        class="pricing-card" 
+        *ngFor="let tier of pricingTiers"
+        [class.highlighted]="tier.highlighted">
+        <div class="pricing-header">
+          <h3>{{ tier.name }}</h3>
+          <div class="pricing-badge" *ngIf="tier.highlighted">Most Popular</div>
+        </div>
+        <div class="pricing-price">
+          <div class="price-label">Prices coming soon</div>
+        </div>
+        <ul class="pricing-features">
+          <li *ngFor="let feature of tier.features">
+            <span class="check-icon">✓</span>
+            {{ feature }}
+          </li>
+        </ul>
+        <button class="btn-primary" [class.btn-outlined]="!tier.highlighted">
+          Get Notified
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section section">
+  <div class="container">
+    <div class="cta-content">
+      <h2 class="text-center mb-2">Ready to transform your customer support?</h2>
+      <p class="text-center text-light mb-3">Join African businesses delivering exceptional customer experiences</p>
+      <div class="cta-buttons">
+        <button class="btn-primary btn-large">Get Started Free</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer id="contact" class="footer">
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="logo">
+          <div class="logo-icon">O</div>
+          <span class="logo-text">ObsyConnect</span>
+        </div>
+        <p class="text-light">Africa's AI-Powered Customer Support Platform</p>
+      </div>
+      
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>Product</h4>
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#contact">Contact</a>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Company</h4>
+          <a href="#">About</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+        
+        <div class="footer-column">
+          <h4>Contact</h4>
+          <a href="mailto:info@obsydiantechnologies.com">info&#64;obsydiantechnologies.com</a>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer-bottom">
+      <p class="text-light">&copy; 2026 Obsydian Technologies. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#" aria-label="Instagram" class="social-link">
+          <i class="pi pi-instagram"></i>
+        </a>
+        <a href="#" aria-label="LinkedIn" class="social-link">
+          <i class="pi pi-linkedin"></i>
+        </a>
+        <a href="#" aria-label="Twitter/X" class="social-link">
+          <i class="pi pi-twitter"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
