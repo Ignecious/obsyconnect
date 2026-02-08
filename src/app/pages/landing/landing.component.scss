@@ -518,26 +518,11 @@
   .footer-brand {
     flex: 1.5;
 
-    .logo {
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
       margin-bottom: 1rem;
-      
-      .logo-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--primary-purple), var(--secondary-purple));
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 1.25rem;
-      }
-    }
-
-    .logo-text {
       color: var(--white);
-      font-size: 1.25rem;
-      font-weight: 700;
     }
 
     p {
