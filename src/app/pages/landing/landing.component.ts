@@ -31,19 +31,19 @@ export class LandingComponent {
 
   features: Feature[] = [
     {
-      icon: '🤖',
-      title: 'AI-Powered Support',
-      description: 'AI responds instantly, escalates when needed'
-    },
-    {
       icon: '💬',
-      title: 'WhatsApp-First',
-      description: 'Meet customers on their favorite channel'
+      title: 'WhatsApp Shared Inbox',
+      description: 'One place for your team to reply, assign, and track customer conversations — without missed messages.'
     },
     {
-      icon: '📊',
-      title: 'Simple CRM',
-      description: 'Manage cases, customers, and conversations in one place'
+      icon: '🤖',
+      title: 'Safe AI Copilot',
+      description: 'Draft replies, tag intent, and answer FAQs from your approved knowledge — and escalate to a human when uncertain.'
+    },
+    {
+      icon: '⚙️',
+      title: 'Workflows & Automations',
+      description: 'Rules, templates, and quick actions for repetitive questions — so you handle more support without hiring.'
     }
   ];
 
@@ -51,17 +51,17 @@ export class LandingComponent {
     {
       number: 1,
       title: 'Customer Messages',
-      description: 'Customers reach out via WhatsApp or Webchat'
+      description: 'Customers message you on WhatsApp or web chat — no airtime required.'
     },
     {
       number: 2,
-      title: 'AI Responds Instantly',
-      description: 'Our AI analyzes and responds in real-time'
+      title: 'AI drafts and answers FAQs',
+      description: 'AI responds from your approved FAQs and suggests replies for your team to review.'
     },
     {
       number: 3,
       title: 'Agent Takes Over',
-      description: 'Human agent steps in when needed for complex cases'
+      description: "When a message is sensitive or uncertain, it's handed to a human — with a clear summary and context."
     }
   ];
 
