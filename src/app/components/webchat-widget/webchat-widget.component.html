@@ -20,11 +20,11 @@
     <div class="messages-container" #messagesContainer>
       <div *ngFor="let message of messages" 
            class="message-wrapper"
-           [class.user-message]="message.sender === 'user'"
-           [class.ai-message]="message.sender === 'ai'">
+           [class.user-message]="message.sender === 'customer'"
+           [class.ai-message]="message.sender === 'agent' || message.sender === 'system'">
         <div class="message-bubble">
-          <span class="message-icon">{{ message.sender === 'ai' ? '🤖' : '👤' }}</span>
-          <div class="message-content" style="white-space: pre-line;">{{ message.text }}</div>
+          <span class="message-icon">{{ message.sender === 'customer' ? '👤' : '🤖' }}</span>
+          <div class="message-content" style="white-space: pre-line;">{{ message.message }}</div>
         </div>
       </div>
 
@@ -38,19 +38,6 @@
             <span></span>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Quick Replies -->
-    <div class="quick-replies-container" *ngIf="quickReplies.length > 0">
-      <div class="quick-replies">
-        <span class="quick-replies-label">💡 Suggested:</span>
-        <button 
-          *ngFor="let reply of quickReplies" 
-          class="quick-reply-button"
-          (click)="selectQuickReply(reply)">
-          {{ reply }}
-        </button>
       </div>
     </div>
 

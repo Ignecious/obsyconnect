@@ -1,8 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChatAIService, Message } from '../../services/chat-ai.service';
-import { Subscription } from 'rxjs';
+import { SupabaseService, Message } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-webchat-widget',
@@ -18,30 +17,32 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
   isTyping = false;
   userMessage = '';
   messages: Message[] = [];
-  quickReplies: string[] = ['Track Order', 'Get Refund', 'Talk to Agent'];
+  conversationId: string | null = null;
   
-  private messagesSubscription?: Subscription;
   private shouldScrollToBottom = false;
 
-  constructor(private chatAI: ChatAIService) {}
+  constructor(private supabase: SupabaseService) {}
 
-  ngOnInit(): void {
-    // Subscribe to messages
-    this.messagesSubscription = this.chatAI.messages$.subscribe(messages => {
-      this.messages = messages;
-      this.shouldScrollToBottom = true;
-      
-      // Update quick replies based on last AI message
-      if (messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        if (lastMessage.sender === 'ai') {
-          this.quickReplies = this.chatAI.getQuickReplies(lastMessage.text);
-        }
+  async ngOnInit(): Promise<void> {
+    // Check if user already has a conversation (stored in localStorage)
+    const existingConversationId = localStorage.getItem('webchat_conversation_id');
+    
+    if (existingConversationId) {
+      this.conversationId = existingConversationId;
+      await this.loadMessages();
+    } else {
+      // Create new conversation
+      await this.createNewConversation();
+    }
+
+    // Subscribe to new messages (real-time)
+    this.supabase.subscribeToMessages((message) => {
+      // Only add messages for this conversation
+      if (message.conversation_id === this.conversationId) {
+        this.messages.push(message);
+        this.shouldScrollToBottom = true;
       }
     });
-
-    // Initial AI greeting
-    this.chatAI.addMessage("Hi there! 👋 I'm your Tixxets AI assistant. How can I help you today?", 'ai');
   }
 
   ngAfterViewChecked(): void {
@@ -52,7 +53,34 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   ngOnDestroy(): void {
-    this.messagesSubscription?.unsubscribe();
+    this.supabase.unsubscribe();
+  }
+
+  async createNewConversation(): Promise<void> {
+    const conversation = await this.supabase.createConversation(
+      'Anonymous',  // You can prompt for name later
+      undefined,
+      undefined
+    );
+
+    if (conversation) {
+      this.conversationId = conversation.id;
+      localStorage.setItem('webchat_conversation_id', conversation.id);
+
+      // Send initial greeting (optional)
+      await this.supabase.sendMessage(
+        conversation.id,
+        'system',
+        "Hi there! 👋 How can I help you today?"
+      );
+    }
+  }
+
+  async loadMessages(): Promise<void> {
+    if (!this.conversationId) return;
+
+    this.messages = await this.supabase.getMessages(this.conversationId);
+    this.shouldScrollToBottom = true;
   }
 
   toggleChat(): void {
@@ -63,28 +91,38 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
   }
 
   async sendMessage(): Promise<void> {
-    if (!this.userMessage.trim()) return;
+    if (!this.userMessage.trim() || !this.conversationId) return;
     
-    // Add user message
-    this.chatAI.addMessage(this.userMessage, 'user');
-    const message = this.userMessage;
+    const messageText = this.userMessage;
     this.userMessage = '';
     
     // Show typing indicator
     this.isTyping = true;
     
     try {
-      // Get AI response (with delay)
-      await this.chatAI.getResponse(message);
-    } finally {
-      // Hide typing indicator
+      // Send customer message
+      await this.supabase.sendMessage(
+        this.conversationId,
+        'customer',
+        messageText
+      );
+
+      // Simulate agent response after 2 seconds (remove this later when you add real agent replies)
+      setTimeout(async () => {
+        if (this.conversationId) {
+          await this.supabase.sendMessage(
+            this.conversationId,
+            'agent',
+            "Thanks for your message! An agent will respond shortly."
+          );
+        }
+        this.isTyping = false;
+      }, 2000);
+
+    } catch (error) {
+      console.error('Error sending message:', error);
       this.isTyping = false;
     }
-  }
-
-  selectQuickReply(reply: string): void {
-    this.userMessage = reply;
-    this.sendMessage();
   }
 
   onKeyPress(event: KeyboardEvent): void {

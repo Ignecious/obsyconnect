@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ConversationListComponent } from '../../components/conversation-list/conversation-list.component';
 import { ConversationViewComponent } from '../../components/conversation-view/conversation-view.component';
 import { CasePanelComponent } from '../../components/case-panel/case-panel.component';
+import { Conversation } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-agent-desktop',
@@ -12,9 +13,9 @@ import { CasePanelComponent } from '../../components/case-panel/case-panel.compo
   styleUrls: ['./agent-desktop.component.scss']
 })
 export class AgentDesktopComponent {
-  selectedConversation: any = null;
+  selectedConversation: Conversation | null = null;
   
-  onConversationSelect(conversation: any) {
+  onConversationSelect(conversation: Conversation) {
     this.selectedConversation = conversation;
   }
 }
