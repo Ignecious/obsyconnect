@@ -14,21 +14,21 @@
     </button>
     <button 
       class="filter-btn new"
-      [class.active]="activeQueue === 'new'"
-      (click)="activeQueue = 'new'">
-      🔵 New ({{ getNewCount() }})
+      [class.active]="activeQueue === 'open'"
+      (click)="activeQueue = 'open'">
+      🟢 Open ({{ getNewCount() }})
     </button>
     <button 
       class="filter-btn active"
-      [class.active]="activeQueue === 'active'"
-      (click)="activeQueue = 'active'">
-      🟡 Active ({{ getActiveCount() }})
+      [class.active]="activeQueue === 'pending'"
+      (click)="activeQueue = 'pending'">
+      🟡 Pending
     </button>
     <button 
       class="filter-btn closed"
       [class.active]="activeQueue === 'closed'"
       (click)="activeQueue = 'closed'">
-      🟢 Closed
+      ⚫ Closed
     </button>
   </div>
 
@@ -37,29 +37,24 @@
     <div 
       *ngFor="let conversation of getFilteredConversations()"
       class="conversation-item"
-      [class.unread]="conversation.unread"
-      [class.ai-escalated]="conversation.aiHandoff"
       (click)="selectConversation(conversation)">
       
       <div class="item-header">
         <div class="customer-info">
-          <span class="avatar">{{ conversation.customer.avatar }}</span>
+          <span class="avatar">👤</span>
           <div class="customer-details">
-            <span class="customer-name">{{ conversation.customer.name }}</span>
-            <span class="customer-phone">{{ conversation.customer.phone }}</span>
+            <span class="customer-name">{{ conversation.customer_name || 'Anonymous' }}</span>
+            <span class="customer-phone">{{ conversation.customer_email || conversation.customer_phone || '' }}</span>
           </div>
         </div>
-        <span class="timestamp">{{ conversation.timestamp }}</span>
+        <span class="timestamp">{{ getLastMessageTime(conversation) }}</span>
       </div>
 
       <div class="item-body">
-        <p class="last-message">{{ conversation.lastMessage }}</p>
+        <p class="last-message">{{ getLastMessage(conversation) }}</p>
         <div class="item-footer">
           <span class="status-badge" [ngClass]="getStatusClass(conversation.status)">
             {{ getStatusIcon(conversation.status) }}
-          </span>
-          <span *ngIf="conversation.assignedTo" class="assigned-to">
-            Assigned to: {{ conversation.assignedTo }}
           </span>
         </div>
       </div>

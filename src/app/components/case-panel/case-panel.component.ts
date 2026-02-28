@@ -27,9 +27,9 @@ export class CasePanelComponent implements OnChanges {
 
     // Customer Info
     this.customerInfo = {
-      name: this.conversation.customer.name,
-      phone: this.conversation.customer.phone,
-      email: this.conversation.customer.email,
+      name: this.conversation.customer_name || 'Anonymous',
+      phone: this.conversation.customer_phone || '',
+      email: this.conversation.customer_email || '',
       accountNumber: 'TIX-9876',
       accountStatus: 'Active',
       memberSince: 'Jan 2025',
