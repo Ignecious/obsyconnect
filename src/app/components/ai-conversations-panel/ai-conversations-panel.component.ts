@@ -29,7 +29,18 @@ export class AIConversationsPanelComponent implements OnInit {
   }
 
   loadConversations() {
-    this.allConversations = this.aiConversationService.getAIConversations();
+    const storedConversations = this.aiConversationService.getAIConversationsFromStorage();
+    const mockConversations = this.aiConversationService.getAIConversations();
+
+    const allConversations = [...storedConversations];
+
+    mockConversations.forEach(mock => {
+      if (!allConversations.find(c => c.id === mock.id)) {
+        allConversations.push(mock);
+      }
+    });
+
+    this.allConversations = allConversations;
     this.statusCounts = this.aiConversationService.getStatusCounts(this.allConversations);
     this.applyFilter('all');
   }
