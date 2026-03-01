@@ -1,0 +1,79 @@
+<div class="conversation-panel" *ngIf="conversation">
+
+  <!-- Escalation Banner -->
+  <div class="escalation-banner" *ngIf="isEscalatedConversation()">
+    {{ getEscalationBanner() }}
+  </div>
+
+  <!-- Messages Area -->
+  <div class="messages-container">
+    <div class="messages-list">
+
+      <!-- AI Context Notice (if escalated) -->
+      <div class="ai-context-notice" *ngIf="isEscalatedConversation()">
+        <div class="notice-icon">ℹ️</div>
+        <div class="notice-content">
+          <strong>AI Conversation History</strong>
+          <p>This conversation was handled by the AI assistant before escalation. Review what the AI already said to provide better support.</p>
+        </div>
+      </div>
+
+      <!-- Message List -->
+      <div
+        *ngFor="let message of conversation.messages"
+        class="message"
+        [ngClass]="getMessageClass(message.sender)">
+
+        <!-- Message Header -->
+        <div class="message-header">
+          <span class="sender-label">{{ getMessageSenderLabel(message.sender) }}</span>
+          <span class="timestamp">{{ getRelativeTime(message.timestamp) }}</span>
+        </div>
+
+        <!-- Message Bubble -->
+        <div class="message-bubble" [ngClass]="getConfidenceClass(message.confidence)">
+          <div class="message-text">{{ message.text }}</div>
+
+          <!-- Confidence Badge (AI messages only) -->
+          <div class="confidence-badge" *ngIf="message.sender === 'ai' && message.confidence">
+            {{ message.confidence }}% confidence
+          </div>
+
+          <!-- Escalation Notice -->
+          <div class="message-escalation" *ngIf="message.isEscalated">
+            ⚠️ Low confidence - Escalated to human agent
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Agent Reply Area -->
+  <div class="reply-area">
+    <div class="reply-header">
+      <span class="reply-label">👤 Your Reply</span>
+    </div>
+    <div class="reply-input-area">
+      <textarea
+        [(ngModel)]="agentReply"
+        placeholder="Type your response to {{ conversation.customerName }}..."
+        rows="3"
+        class="reply-input">
+      </textarea>
+      <button
+        (click)="sendAgentReply()"
+        [disabled]="!agentReply.trim()"
+        class="send-btn">
+        Send Reply
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div class="conversation-empty" *ngIf="!conversation">
+  <div class="empty-icon">💬</div>
+  <p class="empty-title">No conversation selected</p>
+  <p class="empty-text">Select a conversation from the inbox to view details</p>
+</div>
