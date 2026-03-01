@@ -26,15 +26,19 @@ export interface Message {
   providedIn: 'root'
 })
 export class SupabaseService {
-  private supabase: SupabaseClient;
+  private supabase: SupabaseClient | null = null;
   private messageChannel: RealtimeChannel | null = null;
 
   constructor() {
     // TODO: Replace YOUR_SUPABASE_URL and YOUR_SUPABASE_ANON_KEY in src/environments/environment.ts
-    this.supabase = createClient(
-      environment.supabaseUrl,
-      environment.supabaseAnonKey
-    );
+    try {
+      this.supabase = createClient(
+        environment.supabaseUrl,
+        environment.supabaseAnonKey
+      );
+    } catch (e) {
+      console.warn('Supabase not configured. Update environment.ts with valid credentials.', e);
+    }
   }
 
   // ==================== CONVERSATIONS ====================
@@ -43,6 +47,7 @@ export class SupabaseService {
    * Get all conversations with their messages
    */
   async getConversations(): Promise<Conversation[]> {
+    if (!this.supabase) return [];
     const { data, error } = await this.supabase
       .from('conversations')
       .select(`
@@ -63,6 +68,7 @@ export class SupabaseService {
    * Get a single conversation with messages
    */
   async getConversation(id: string): Promise<Conversation | null> {
+    if (!this.supabase) return null;
     const { data, error } = await this.supabase
       .from('conversations')
       .select(`
@@ -88,6 +94,7 @@ export class SupabaseService {
     customerEmail?: string,
     customerPhone?: string
   ): Promise<Conversation | null> {
+    if (!this.supabase) return null;
     const { data, error } = await this.supabase
       .from('conversations')
       .insert({
@@ -111,6 +118,7 @@ export class SupabaseService {
    * Update conversation status
    */
   async updateConversationStatus(id: string, status: 'open' | 'closed' | 'pending'): Promise<boolean> {
+    if (!this.supabase) return false;
     const { error } = await this.supabase
       .from('conversations')
       .update({ status })
@@ -128,6 +136,7 @@ export class SupabaseService {
    * Update conversation metadata
    */
   async updateConversation(id: string, updates: Partial<Conversation>): Promise<boolean> {
+    if (!this.supabase) return false;
     const { error } = await this.supabase
       .from('conversations')
       .update(updates)
@@ -147,6 +156,7 @@ export class SupabaseService {
    * Get messages for a conversation
    */
   async getMessages(conversationId: string): Promise<Message[]> {
+    if (!this.supabase) return [];
     const { data, error } = await this.supabase
       .from('messages')
       .select('*')
@@ -169,6 +179,7 @@ export class SupabaseService {
     sender: 'customer' | 'agent' | 'system',
     message: string
   ): Promise<Message | null> {
+    if (!this.supabase) return null;
     const { data, error } = await this.supabase
       .from('messages')
       .insert({
@@ -192,7 +203,8 @@ export class SupabaseService {
   /**
    * Subscribe to new messages in real-time
    */
-  subscribeToMessages(callback: (message: Message) => void): RealtimeChannel {
+  subscribeToMessages(callback: (message: Message) => void): RealtimeChannel | null {
+    if (!this.supabase) return null;
     this.messageChannel = this.supabase
       .channel('messages-channel')
       .on(
@@ -215,7 +227,8 @@ export class SupabaseService {
   /**
    * Subscribe to conversation changes
    */
-  subscribeToConversations(callback: (conversation: Conversation) => void): RealtimeChannel {
+  subscribeToConversations(callback: (conversation: Conversation) => void): RealtimeChannel | null {
+    if (!this.supabase) return null;
     return this.supabase
       .channel('conversations-channel')
       .on(
@@ -237,7 +250,7 @@ export class SupabaseService {
    * Unsubscribe from all channels
    */
   unsubscribe() {
-    if (this.messageChannel) {
+    if (this.messageChannel && this.supabase) {
       this.supabase.removeChannel(this.messageChannel);
       this.messageChannel = null;
     }
