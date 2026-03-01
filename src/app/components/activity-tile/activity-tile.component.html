@@ -1,0 +1,66 @@
+<div class="activity-tile">
+  <div class="tile-header">
+    <h3>📊 Activity</h3>
+    <span class="activity-count" *ngIf="activities.length > 0">{{ activities.length }}</span>
+  </div>
+
+  <div class="tile-body">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="activities.length === 0">
+      <p>No AI interactions yet</p>
+      <span class="empty-hint">Activity will appear here when the AI agent responds to customer questions</span>
+    </div>
+
+    <!-- Activity List -->
+    <div class="activity-list" *ngIf="activities.length > 0">
+      <div class="activity-item"
+           *ngFor="let activity of activities"
+           [class.expanded]="isExpanded(activity.id)">
+
+        <!-- Activity Header -->
+        <div class="activity-header">
+          <div class="channel-info">
+            <span class="channel-icon">{{ getChannelIcon(activity.channel) }}</span>
+            <span class="channel-name">{{ getChannelName(activity.channel) }}</span>
+            <span class="separator">·</span>
+            <span class="timestamp">{{ getRelativeTime(activity.timestamp) }}</span>
+          </div>
+          <button class="expand-btn"
+                  (click)="toggleExpand(activity.id)"
+                  [title]="isExpanded(activity.id) ? 'Collapse' : 'Expand'">
+            {{ isExpanded(activity.id) ? '−' : '+' }}
+          </button>
+        </div>
+
+        <!-- Activity Content -->
+        <div class="activity-content">
+          <div class="question">
+            <span class="label">Q:</span>
+            <span class="text">{{ isExpanded(activity.id) ? activity.question : truncateText(activity.question) }}</span>
+          </div>
+          <div class="answer">
+            <span class="label">A:</span>
+            <span class="text">{{ isExpanded(activity.id) ? activity.answer : truncateText(activity.answer) }}</span>
+          </div>
+        </div>
+
+        <!-- Confidence Badge -->
+        <div class="activity-footer">
+          <span class="confidence-badge"
+                [class]="getConfidenceBadgeClass(activity.confidence)">
+            {{ activity.confidence }}% Confidence
+            <ng-container *ngIf="!activity.isEscalated; else escalatedIcon">
+              <span class="badge-icon">✅</span>
+            </ng-container>
+            <ng-template #escalatedIcon>
+              <span class="badge-icon warning">⚠️</span>
+            </ng-template>
+          </span>
+          <span class="escalation-label" *ngIf="activity.isEscalated">
+            Escalated to agent
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
