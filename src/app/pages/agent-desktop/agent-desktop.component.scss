@@ -50,6 +50,21 @@
   &.active {
     color: var(--text-white, #FFFFFF);
     background: var(--primary-purple, #A855F7);
+    opacity: 1;
+    cursor: pointer;
+    pointer-events: auto;
+  }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    color: var(--text-grey, #94A3B8);
+
+    &:hover {
+      background: transparent;
+      color: var(--text-grey, #94A3B8);
+    }
   }
 }
 
