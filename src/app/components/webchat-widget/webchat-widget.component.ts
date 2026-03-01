@@ -171,6 +171,17 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
     }
   }
 
+  getConfidenceScore(): number {
+    return 100;
+  }
+
+  formatTimestamp(timestamp: string): string {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) return '';
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+
   private scrollToBottom(): void {
     try {
       if (this.messagesContainer) {
