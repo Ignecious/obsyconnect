@@ -15,9 +15,15 @@
         <p>{{ conversation.customer_email || conversation.customer_phone || '' }}</p>
       </div>
       <div class="header-actions">
-        <span class="status-badge" [class]="'status-' + conversation.status">
-          {{ conversation.status }}
-        </span>
+        <select
+          [value]="conversation.status"
+          (change)="updateStatus($any($event.target).value)"
+          class="status-dropdown"
+        >
+          <option value="open">🟢 Open</option>
+          <option value="pending">🟡 Pending</option>
+          <option value="closed">⚫ Resolved</option>
+        </select>
       </div>
     </div>
 
@@ -37,7 +43,7 @@
             <div class="message-bubble" [ngClass]="'bubble-' + message.sender">
               <p>{{ message.message }}</p>
             </div>
-            <span class="message-time">{{ message.created_at | date:'shortTime' }}</span>
+            <span class="message-time">{{ message.created_at | timeAgo }}</span>
           </div>
         </div>
       </div>

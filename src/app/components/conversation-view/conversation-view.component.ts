@@ -2,11 +2,12 @@ import { Component, Input, OnChanges, SimpleChanges, OnDestroy } from '@angular/
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService, Conversation, Message } from '../../services/supabase.service';
+import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-conversation-view',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TimeAgoPipe],
   templateUrl: './conversation-view.component.html',
   styleUrls: ['./conversation-view.component.scss']
 })
@@ -56,6 +57,13 @@ export class ConversationViewComponent implements OnChanges, OnDestroy {
       'agent',
       messageText
     );
+  }
+
+  async updateStatus(newStatus: 'open' | 'pending' | 'closed'): Promise<void> {
+    if (!this.conversation) return;
+
+    await this.supabase.updateConversationStatus(this.conversation.id, newStatus);
+    this.conversation.status = newStatus;
   }
 
   getCurrentTime(): string {

@@ -395,3 +395,88 @@
     border-radius: 0;
   }
 }
+
+/* Welcome Form */
+.welcome-form {
+  flex: 1;
+  padding: 2rem;
+  background: #1F2937;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .welcome-header {
+    margin-bottom: 1.5rem;
+
+    h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    p {
+      margin: 0;
+      color: #9CA3AF;
+      font-size: 0.9rem;
+    }
+  }
+
+  .welcome-body {
+    .form-group {
+      margin-bottom: 1rem;
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #D1D5DB;
+      }
+
+      .form-input {
+        width: 100%;
+        padding: 0.75rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        font-size: 0.95rem;
+        color: white;
+        box-sizing: border-box;
+
+        &::placeholder {
+          color: #6B7280;
+        }
+
+        &:focus {
+          outline: none;
+          border-color: #8B5CF6;
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+      }
+
+      .field-error {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.8rem;
+        color: #F87171;
+      }
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.75rem;
+      background: #8B5CF6;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover {
+        background: #7C3AED;
+      }
+    }
+  }
+}

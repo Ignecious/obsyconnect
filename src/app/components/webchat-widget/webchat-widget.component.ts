@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { SupabaseService, Message } from '../../services/supabase.service';
+import { SupabaseService, Conversation, Message } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-webchat-widget',
@@ -18,26 +18,30 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
   userMessage = '';
   messages: Message[] = [];
   conversationId: string | null = null;
+
+  // Customer info collection
+  showWelcomeForm = false;
+  customerName = '';
+  customerEmail = '';
+  nameError = '';
   
   private shouldScrollToBottom = false;
 
   constructor(private supabase: SupabaseService) {}
 
   async ngOnInit(): Promise<void> {
-    // Check if user already has a conversation (stored in localStorage)
     const existingConversationId = localStorage.getItem('webchat_conversation_id');
     
     if (existingConversationId) {
       this.conversationId = existingConversationId;
       await this.loadMessages();
     } else {
-      // Create new conversation
-      await this.createNewConversation();
+      // Show welcome form for new conversations
+      this.showWelcomeForm = true;
     }
 
     // Subscribe to new messages (real-time)
     this.supabase.subscribeToMessages((message) => {
-      // Only add messages for this conversation
       if (message.conversation_id === this.conversationId) {
         this.messages.push(message);
         this.shouldScrollToBottom = true;
@@ -56,10 +60,16 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
     this.supabase.unsubscribe();
   }
 
-  async createNewConversation(): Promise<void> {
+  async startChat(): Promise<void> {
+    if (!this.customerName.trim()) {
+      this.nameError = 'Please enter your name';
+      return;
+    }
+    this.nameError = '';
+
     const conversation = await this.supabase.createConversation(
-      'Anonymous',  // You can prompt for name later
-      undefined,
+      this.customerName,
+      this.customerEmail || undefined,
       undefined
     );
 
@@ -67,12 +77,16 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
       this.conversationId = conversation.id;
       localStorage.setItem('webchat_conversation_id', conversation.id);
 
-      // Send initial greeting (optional)
+      // Send initial greeting
       await this.supabase.sendMessage(
         conversation.id,
         'system',
-        "Hi there! 👋 How can I help you today?"
+        `Hi ${this.customerName}! 👋 How can I help you today?`
       );
+
+      this.showWelcomeForm = false;
+      this.shouldScrollToBottom = true;
+      await this.loadMessages();
     }
   }
 
@@ -96,28 +110,35 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
     const messageText = this.userMessage;
     this.userMessage = '';
     
-    // Show typing indicator
-    this.isTyping = true;
-    
     try {
-      // Send customer message
       await this.supabase.sendMessage(
         this.conversationId,
         'customer',
         messageText
       );
 
-      // Simulate agent response after 2 seconds (remove this later when you add real agent replies)
-      setTimeout(async () => {
-        if (this.conversationId) {
-          await this.supabase.sendMessage(
-            this.conversationId,
-            'agent',
-            "Thanks for your message! An agent will respond shortly."
-          );
-        }
-        this.isTyping = false;
-      }, 2000);
+      // Check if auto-reply has already been sent
+      const conversation = await this.supabase.getConversation(this.conversationId);
+      
+      if (conversation && !conversation.auto_reply_sent) {
+        this.isTyping = true;
+        
+        setTimeout(async () => {
+          if (this.conversationId) {
+            await this.supabase.sendMessage(
+              this.conversationId,
+              'agent',
+              "Thanks for your message! An agent will respond shortly."
+            );
+
+            // Mark auto-reply as sent so it only fires once
+            await this.supabase.updateConversation(this.conversationId, {
+              auto_reply_sent: true
+            });
+          }
+          this.isTyping = false;
+        }, 1500);
+      }
 
     } catch (error) {
       console.error('Error sending message:', error);
