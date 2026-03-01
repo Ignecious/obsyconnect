@@ -24,28 +24,42 @@
       </div>
       <div class="welcome-body">
         <div class="form-group">
-          <label>Your Name *</label>
+          <label for="customer-name">Your Name *</label>
           <input
+            id="customer-name"
             type="text"
             [(ngModel)]="customerName"
             placeholder="John Doe"
-            (keypress)="$event.key === 'Enter' && startChat()"
+            (keypress)="onFormKeyPress($event)"
             class="form-input"
+            [disabled]="false"
+            [readonly]="false"
+            autocomplete="name"
             autofocus
           />
-          <span class="field-error" *ngIf="nameError">{{ nameError }}</span>
+          <span class="error-message" *ngIf="showNameError">Please enter your name</span>
         </div>
         <div class="form-group">
-          <label>Email (optional)</label>
+          <label for="customer-email">Email (optional)</label>
           <input
+            id="customer-email"
             type="email"
             [(ngModel)]="customerEmail"
             placeholder="john@example.com"
-            (keypress)="$event.key === 'Enter' && startChat()"
+            (keypress)="onFormKeyPress($event)"
             class="form-input"
+            [disabled]="false"
+            [readonly]="false"
+            autocomplete="email"
           />
         </div>
-        <button class="btn-primary" (click)="startChat()">Start Chat</button>
+        <button
+          class="btn-primary"
+          (click)="startChat()"
+          [disabled]="isStartingChat"
+        >
+          {{ isStartingChat ? 'Starting...' : 'Start Chat' }}
+        </button>
       </div>
     </div>
 
