@@ -63,9 +63,9 @@
         <div class="form-group">
           <label>AI Model</label>
           <select [(ngModel)]="aiModel" class="form-select">
-            <option value="claude-3.5">AWS Bedrock - Claude 3.5 Sonnet</option>
-            <option value="claude-3">AWS Bedrock - Claude 3 Opus</option>
-            <option value="claude-instant">AWS Bedrock - Claude Instant</option>
+            <option value="gpt-4o-mini">OpenAI - GPT-4o Mini (Recommended)</option>
+            <option value="gpt-4o">OpenAI - GPT-4o (Premium)</option>
+            <option value="gpt-3.5-turbo">OpenAI - GPT-3.5 Turbo</option>
           </select>
         </div>
         <div class="form-group">
@@ -557,36 +557,69 @@
 </div>
 
 <!-- Test AI Modal -->
-<div class="modal-overlay" *ngIf="showTestAIModal" (click)="closeTestAIModal()">
-  <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+<div class="modal-overlay" *ngIf="showTestAIModal" (click)="showTestAIModal = false">
+  <div class="modal-content test-ai-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h3>🧪 Test AI Agent</h3>
-      <button class="modal-close" (click)="closeTestAIModal()">×</button>
+      <button class="btn-close" (click)="showTestAIModal = false">×</button>
     </div>
+    
     <div class="modal-body">
+      <p class="modal-description">Test your AI agent with sample questions. AI will respond based on your Knowledge Base and Custom Q&amp;A.</p>
+      
+      <!-- Test Chat Interface -->
       <div class="test-chat-container">
         <div class="test-messages">
-          <div *ngIf="testMessages.length === 0" class="test-welcome">
-            <p>👋 Welcome to the AI Test Console</p>
-            <p>Type a question below to test how your AI agent responds.</p>
+          <div *ngIf="testMessages.length === 0" class="empty-state">
+            <p>👋 Start a conversation to test the AI agent</p>
+            <p class="hint">Try asking: "What's your refund policy?"</p>
           </div>
-          <div *ngFor="let msg of testMessages" class="test-message" [class]="'test-message-' + msg.sender">
+          
+          <div *ngFor="let msg of testMessages" 
+               [class]="'test-message ' + msg.sender">
             <div class="message-bubble">
               <div class="message-text">{{ msg.message }}</div>
-              <div class="message-source" *ngIf="msg.source">{{ msg.source }}</div>
+              <div class="message-meta" *ngIf="msg.sender === 'ai' && msg.confidence !== undefined">
+                <span class="confidence-badge" 
+                      [class.high]="msg.confidence >= 85"
+                      [class.medium]="msg.confidence >= 50 && msg.confidence < 85"
+                      [class.low]="msg.confidence < 50">
+                  {{ msg.confidence }}% confidence
+                </span>
+                <span class="source-info" *ngIf="msg.source">{{ msg.source }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="isTestingAI" class="test-message ai">
+            <div class="message-bubble typing-indicator">
+              <span></span><span></span><span></span>
             </div>
           </div>
         </div>
-        <div class="test-input-row">
+        
+        <!-- Input Area -->
+        <div class="test-input-area">
           <input 
             type="text" 
             [(ngModel)]="testUserInput" 
             (keyup.enter)="sendTestMessage()"
-            class="form-input" 
-            placeholder="Type your test question..." />
-          <button class="btn-primary" (click)="sendTestMessage()">Send</button>
+            placeholder="Type a test question..."
+            class="test-input"
+            [disabled]="isTestingAI" />
+          <button 
+            class="btn-send-test" 
+            (click)="sendTestMessage()"
+            [disabled]="!testUserInput.trim() || isTestingAI">
+            {{ isTestingAI ? '...' : 'Send' }}
+          </button>
         </div>
       </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="clearTestChat()">Clear Chat</button>
+      <button class="btn-primary" (click)="showTestAIModal = false">Done</button>
     </div>
   </div>
 </div>

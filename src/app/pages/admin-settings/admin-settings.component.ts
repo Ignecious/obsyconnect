@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
+import { AIService, AIResponse } from '../../services/ai.service';
 
 interface UploadedFile {
   id: number;
@@ -62,12 +63,14 @@ export class AdminSettingsComponent implements OnInit {
   editingQA: CustomQA | null = null;
   
   // Test AI Chat
-  testMessages: Array<{sender: 'user' | 'ai', message: string, source?: string}> = [];
+  testMessages: Array<{sender: 'user' | 'ai', message: string, source?: string, confidence?: number}> = [];
   testUserInput: string = '';
-  
+  isTestingAI: boolean = false;
+
   constructor(
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private aiService: AIService
   ) {}
   
   ngOnInit() {
@@ -82,25 +85,15 @@ export class AdminSettingsComponent implements OnInit {
   // AI Agent Tab Data
   agentName: string = 'Tixxets Support Assistant';
   agentGreeting: string = 'Hi! 👋 I\'m the Tixxets AI assistant. How can I help you today?';
-  aiModel: string = 'claude-3.5';
-  temperature: number = 0.7;
-  maxResponseLength: string = '500';
+  aiModel: string = 'gpt-4o-mini';
+  temperature: number = 0.3;
+  maxResponseLength: string = '200';
   autoEscalateAttempts: number = 3;
   
-  // Knowledge Base - Mock uploaded files (12 items)
+  // Knowledge Base - Mock uploaded files (2 items)
   uploadedFiles: UploadedFile[] = [
-    { id: 1, name: 'refund-policy.pdf', type: 'pdf', size: '2.3 MB', icon: '📄' },
-    { id: 2, name: 'product-catalog.docx', type: 'docx', size: '1.8 MB', icon: '📄' },
-    { id: 3, name: 'shipping-guide.pdf', type: 'pdf', size: '890 KB', icon: '📄' },
-    { id: 4, name: 'returns-process.txt', type: 'txt', size: '45 KB', icon: '📄' },
-    { id: 5, name: 'event-ticketing-faq.pdf', type: 'pdf', size: '1.2 MB', icon: '📄' },
-    { id: 6, name: 'payment-methods.docx', type: 'docx', size: '320 KB', icon: '📄' },
-    { id: 7, name: 'venue-information.pdf', type: 'pdf', size: '2.1 MB', icon: '📄' },
-    { id: 8, name: 'group-bookings.pdf', type: 'pdf', size: '1.5 MB', icon: '📄' },
-    { id: 9, name: 'accessibility-info.txt', type: 'txt', size: '28 KB', icon: '📄' },
-    { id: 10, name: 'cancellation-policy.pdf', type: 'pdf', size: '670 KB', icon: '📄' },
-    { id: 11, name: 'age-restrictions.docx', type: 'docx', size: '210 KB', icon: '📄' },
-    { id: 12, name: 'parking-directions.txt', type: 'txt', size: '15 KB', icon: '📄' }
+    { id: 1, name: 'tixxets-faq.pdf', type: 'pdf', size: '1.2 MB', icon: '📄' },
+    { id: 2, name: 'refund-policy.pdf', type: 'pdf', size: '890 KB', icon: '📄' }
   ];
   
   // Custom Q&A (18 entries)
@@ -348,46 +341,46 @@ export class AdminSettingsComponent implements OnInit {
     this.testUserInput = '';
   }
   
-  sendTestMessage() {
-    if (!this.testUserInput.trim()) {
-      // Early return for empty messages - no action needed in test environment
-      return;
+  async sendTestMessage() {
+    if (!this.testUserInput.trim() || this.isTestingAI) return;
+
+    const userMessage = this.testUserInput.trim();
+    this.testUserInput = '';
+
+    // Add user message to chat
+    this.testMessages.push({
+      sender: 'user',
+      message: userMessage
+    });
+
+    this.isTestingAI = true;
+
+    try {
+      // Get AI response
+      const aiResponse: AIResponse = await this.aiService.getResponse(userMessage, this.testMessages);
+
+      // Add AI response to chat
+      this.testMessages.push({
+        sender: 'ai',
+        message: aiResponse.text,
+        source: aiResponse.reasoning,
+        confidence: aiResponse.confidence
+      });
+
+    } catch (error) {
+      console.error('Test AI error:', error);
+      this.testMessages.push({
+        sender: 'ai',
+        message: 'Error testing AI. Please check console for details.',
+        confidence: 0
+      });
+    } finally {
+      this.isTestingAI = false;
     }
-    
-    // Add user message
-    this.testMessages.push({ sender: 'user', message: this.testUserInput });
-    
-    // Mock AI response
-    const lowerInput = this.testUserInput.toLowerCase();
-    let response = '';
-    let source = '';
-    
-    // Check custom Q&As with fuzzy matching
-    const QUESTION_MATCH_MIN_LENGTH = 10; // Minimum substring length for question matching
-    const matchingQA = this.customQAs.find(qa => 
-      qa.question.toLowerCase().includes(lowerInput) || 
-      lowerInput.includes(qa.question.toLowerCase().slice(0, QUESTION_MATCH_MIN_LENGTH))
-    );
-    
-    if (matchingQA) {
-      response = matchingQA.answer;
-      source = `From: Custom Q&A #${matchingQA.id}`;
-    } else if (lowerInput.includes('refund') || lowerInput.includes('policy')) {
-      response = 'According to our refund policy, full refunds are available up to 14 days before the event.';
-      source = 'From: refund-policy.pdf';
-    } else if (lowerInput.includes('payment') || lowerInput.includes('pay')) {
-      response = 'We accept Visa, Mastercard, EFT, and SnapScan. All payments are secure and encrypted.';
-      source = 'From: payment-methods.docx';
-    } else {
-      response = 'I\'m here to help! Could you please provide more details about your question?';
-      source = 'From: AI General Knowledge';
-    }
-    
-    // Add AI response after short delay
-    setTimeout(() => {
-      this.testMessages.push({ sender: 'ai', message: response, source: source });
-    }, 500);
-    
+  }
+
+  clearTestChat() {
+    this.testMessages = [];
     this.testUserInput = '';
   }
   
