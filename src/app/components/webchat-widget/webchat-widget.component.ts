@@ -23,7 +23,8 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
   showWelcomeForm = false;
   customerName = '';
   customerEmail = '';
-  nameError = '';
+  showNameError = false;
+  isStartingChat = false;
   
   private shouldScrollToBottom = false;
 
@@ -60,33 +61,50 @@ export class WebchatWidgetComponent implements OnInit, OnDestroy, AfterViewCheck
     this.supabase.unsubscribe();
   }
 
+  onFormKeyPress(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.startChat();
+    }
+  }
+
   async startChat(): Promise<void> {
     if (!this.customerName.trim()) {
-      this.nameError = 'Please enter your name';
+      this.showNameError = true;
       return;
     }
-    this.nameError = '';
+    this.showNameError = false;
+    this.isStartingChat = true;
 
-    const conversation = await this.supabase.createConversation(
-      this.customerName,
-      this.customerEmail || undefined,
-      undefined
-    );
-
-    if (conversation) {
-      this.conversationId = conversation.id;
-      localStorage.setItem('webchat_conversation_id', conversation.id);
-
-      // Send initial greeting
-      await this.supabase.sendMessage(
-        conversation.id,
-        'system',
-        `Hi ${this.customerName}! 👋 How can I help you today?`
+    try {
+      const conversation = await this.supabase.createConversation(
+        this.customerName.trim(),
+        this.customerEmail.trim() || undefined,
+        undefined
       );
 
-      this.showWelcomeForm = false;
-      this.shouldScrollToBottom = true;
-      await this.loadMessages();
+      if (conversation) {
+        this.conversationId = conversation.id;
+        localStorage.setItem('webchat_conversation_id', conversation.id);
+
+        // Send initial greeting
+        await this.supabase.sendMessage(
+          conversation.id,
+          'system',
+          `Hi ${this.customerName}! 👋 How can I help you today?`
+        );
+
+        this.showWelcomeForm = false;
+        this.shouldScrollToBottom = true;
+        await this.loadMessages();
+      } else {
+        alert('Failed to start chat. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error starting chat:', error);
+      alert('Something went wrong. Please try again.');
+    } finally {
+      this.isStartingChat = false;
     }
   }
 
