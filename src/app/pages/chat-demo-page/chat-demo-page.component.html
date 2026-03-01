@@ -1,0 +1,44 @@
+<div class="chat-demo-page">
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">tixxets</div>
+        <nav class="nav">
+          <a href="#">Find Events</a>
+          <a href="#">Create Events</a>
+          <a href="#">Help</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero-title">
+        Your All-In-One<br>
+        <span class="highlight">Event Ticketing</span><br>
+        Platform
+      </h1>
+      <p class="hero-description">
+        Create and manage events in minutes, track sales in real time, and keep more of your ticket revenue.
+      </p>
+      <button class="btn-primary">Start Selling Tickets</button>
+    </div>
+  </section>
+
+  <!-- Backdrop -->
+  <div class="chat-backdrop" *ngIf="chatOpen" (click)="closeChat()"></div>
+
+  <!-- Chat Overlay -->
+  <div class="chat-overlay" *ngIf="chatOpen">
+    <app-chat-demo (close)="closeChat()"></app-chat-demo>
+  </div>
+
+  <!-- Chat Bubble -->
+  <button class="chat-bubble" *ngIf="!chatOpen" (click)="toggleChat()" aria-label="Open chat">
+    <span class="bubble-icon">💬</span>
+    <span class="bubble-text">Chat</span>
+  </button>
+</div>
