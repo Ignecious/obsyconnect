@@ -90,6 +90,53 @@
   border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
 }
 
+.inbox-panel {
+  display: flex;
+  flex-direction: column;
+
+  .view-toggle {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    background: var(--bg-dark, #0F172A);
+    flex-shrink: 0;
+
+    .toggle-btn {
+      flex: 1;
+      padding: 0.6rem 0.5rem;
+      background: transparent;
+      border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+      border-radius: 8px;
+      color: var(--text-grey, #94A3B8);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        border-color: var(--primary-purple, #A855F7);
+        color: var(--text-white, #FFFFFF);
+      }
+
+      &.active {
+        background: var(--primary-purple, #A855F7);
+        border-color: var(--primary-purple, #A855F7);
+        color: white;
+      }
+    }
+  }
+
+  app-conversation-list,
+  app-ai-conversations-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+}
+
 .details-panel {
   border-right: none;
 }

@@ -1,0 +1,73 @@
+<div class="ai-conversations-panel">
+  <!-- Header -->
+  <div class="panel-header">
+    <h2>🤖 AI Conversations</h2>
+  </div>
+
+  <!-- Filter Tabs -->
+  <div class="filter-tabs">
+    <button
+      class="filter-tab"
+      [class.active]="activeFilter === 'all'"
+      (click)="applyFilter('all')">
+      All ({{ statusCounts.all }})
+    </button>
+    <button
+      class="filter-tab"
+      [class.active]="activeFilter === 'resolved'"
+      (click)="applyFilter('resolved')">
+      Resolved ({{ statusCounts.resolved }})
+    </button>
+    <button
+      class="filter-tab"
+      [class.active]="activeFilter === 'escalated'"
+      (click)="applyFilter('escalated')">
+      Escalated ({{ statusCounts.escalated }})
+    </button>
+  </div>
+
+  <!-- Conversation List -->
+  <div class="conversation-list">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="conversationGroups.length === 0">
+      <p class="empty-icon">🤖</p>
+      <p class="empty-title">No AI conversations yet</p>
+      <p class="empty-text">AI-handled conversations will appear here</p>
+    </div>
+
+    <!-- Grouped Conversations -->
+    <div class="conversation-groups" *ngIf="conversationGroups.length > 0">
+      <div class="conversation-group" *ngFor="let group of conversationGroups">
+        <div class="group-header">{{ group.label }}</div>
+
+        <div
+          class="conversation-item"
+          *ngFor="let conversation of group.conversations"
+          [class.selected]="selectedConversationId === conversation.id"
+          (click)="selectConversation(conversation)">
+
+          <!-- Conversation Header -->
+          <div class="conversation-header">
+            <span class="channel-icon">{{ getChannelIcon(conversation.channel) }}</span>
+            <span class="customer-name">{{ conversation.customerName }}</span>
+            <span class="timestamp">{{ getRelativeTime(conversation.timestamp) }}</span>
+          </div>
+
+          <!-- Message Preview -->
+          <div class="message-preview">
+            "{{ truncateMessage(conversation.firstMessage) }}"
+          </div>
+
+          <!-- Status Badge -->
+          <div class="conversation-footer">
+            <span class="status-badge" [ngClass]="getStatusClass(conversation.status)">
+              <span class="status-icon" *ngIf="conversation.status === 'resolved'">✅</span>
+              <span class="status-icon" *ngIf="conversation.status === 'escalated'">⚠️</span>
+              {{ getStatusDisplay(conversation) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
