@@ -50,9 +50,24 @@
 
     <!-- Middle Panel - Conversation View -->
     <main class="conversation-panel">
-      <app-conversation-view 
+      <!-- Regular inbox conversation -->
+      <app-conversation-view
+        *ngIf="selectedConversation && !selectedAIConversationId"
         [conversation]="selectedConversation">
       </app-conversation-view>
+
+      <!-- AI escalated conversation -->
+      <app-conversation-panel
+        *ngIf="selectedAIConversationId"
+        [conversationId]="selectedAIConversationId">
+      </app-conversation-panel>
+
+      <!-- Empty state when nothing selected -->
+      <div class="no-selection-state" *ngIf="!selectedConversation && !selectedAIConversationId">
+        <div class="empty-icon">📬</div>
+        <h3>No conversation selected</h3>
+        <p>Select a conversation from the inbox to view and respond</p>
+      </div>
     </main>
 
     <!-- Right Panel - Case Details -->

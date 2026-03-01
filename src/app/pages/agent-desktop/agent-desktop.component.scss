@@ -90,6 +90,48 @@
   border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
 }
 
+.conversation-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  app-conversation-view,
+  app-conversation-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .no-selection-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: var(--text-grey, #94A3B8);
+    padding: 3rem;
+
+    .empty-icon {
+      font-size: 5rem;
+      margin-bottom: 2rem;
+    }
+
+    h3 {
+      font-size: 1.5rem;
+      color: var(--text-white, #FFFFFF);
+      margin: 0 0 1rem 0;
+    }
+
+    p {
+      font-size: 1rem;
+      margin: 0;
+    }
+  }
+}
+
 .inbox-panel {
   display: flex;
   flex-direction: column;

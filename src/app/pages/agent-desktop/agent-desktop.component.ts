@@ -6,28 +6,35 @@ import { CasePanelComponent } from '../../components/case-panel/case-panel.compo
 import { Conversation } from '../../services/supabase.service';
 import { AIConversationsPanelComponent } from '../../components/ai-conversations-panel/ai-conversations-panel.component';
 import { AIConversation } from '../../models/ai-conversation.model';
+import { ConversationPanelComponent } from '../../components/conversation-panel/conversation-panel.component';
+import { ConversationService } from '../../services/conversation.service';
 
 @Component({
   selector: 'app-agent-desktop',
   standalone: true,
-  imports: [CommonModule, ConversationListComponent, ConversationViewComponent, CasePanelComponent, AIConversationsPanelComponent],
+  imports: [CommonModule, ConversationListComponent, ConversationViewComponent, CasePanelComponent, AIConversationsPanelComponent, ConversationPanelComponent],
   templateUrl: './agent-desktop.component.html',
   styleUrls: ['./agent-desktop.component.scss']
 })
 export class AgentDesktopComponent {
   activeView: 'inbox' | 'ai-conversations' = 'inbox';
   selectedConversation: Conversation | null = null;
+  selectedAIConversationId: string | null = null;
+
+  constructor(private conversationService: ConversationService) {}
 
   onConversationSelect(conversation: Conversation) {
     this.selectedConversation = conversation;
+    this.selectedAIConversationId = null;
   }
 
   setView(view: 'inbox' | 'ai-conversations') {
     this.activeView = view;
   }
 
-  onAIConversationSelected(conversation: AIConversation) {
-    // TODO: Load full conversation details in right panel
-    console.log('AI Conversation selected:', conversation);
+  onAIConversationSelected(aiConversation: AIConversation) {
+    console.log('🤖 AI Conversation selected:', aiConversation);
+    this.selectedAIConversationId = aiConversation.id;
+    this.selectedConversation = null;
   }
 }
