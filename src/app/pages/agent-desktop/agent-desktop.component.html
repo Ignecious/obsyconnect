@@ -19,9 +19,33 @@
   <div class="desktop-main">
     <!-- Left Panel - Conversation List -->
     <aside class="inbox-panel">
-      <app-conversation-list 
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button
+          class="toggle-btn"
+          [class.active]="activeView === 'inbox'"
+          (click)="setView('inbox')">
+          Conversations
+        </button>
+        <button
+          class="toggle-btn"
+          [class.active]="activeView === 'ai-conversations'"
+          (click)="setView('ai-conversations')">
+          🤖 AI Conversations
+        </button>
+      </div>
+
+      <!-- Inbox View -->
+      <app-conversation-list
+        *ngIf="activeView === 'inbox'"
         (conversationSelected)="onConversationSelect($event)">
       </app-conversation-list>
+
+      <!-- AI Conversations View -->
+      <app-ai-conversations-panel
+        *ngIf="activeView === 'ai-conversations'"
+        (conversationSelected)="onAIConversationSelected($event)">
+      </app-ai-conversations-panel>
     </aside>
 
     <!-- Middle Panel - Conversation View -->
