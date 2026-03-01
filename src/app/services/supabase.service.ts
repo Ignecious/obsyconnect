@@ -8,6 +8,7 @@ export interface Conversation {
   customer_email: string | null;
   customer_phone: string | null;
   status: 'open' | 'closed' | 'pending';
+  auto_reply_sent?: boolean;
   created_at: string;
   updated_at: string;
   messages?: Message[];
@@ -113,6 +114,23 @@ export class SupabaseService {
     const { error } = await this.supabase
       .from('conversations')
       .update({ status })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating conversation:', error);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Update conversation metadata
+   */
+  async updateConversation(id: string, updates: Partial<Conversation>): Promise<boolean> {
+    const { error } = await this.supabase
+      .from('conversations')
+      .update(updates)
       .eq('id', id);
 
     if (error) {

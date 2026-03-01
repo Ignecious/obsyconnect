@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SupabaseService, Conversation } from '../../services/supabase.service';
+import { TimeAgoPipe } from '../../pipes/time-ago.pipe';
 
 @Component({
   selector: 'app-conversation-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TimeAgoPipe],
   templateUrl: './conversation-list.component.html',
   styleUrls: ['./conversation-list.component.scss']
 })
@@ -71,8 +72,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
       return '';
     }
     const lastMsg = conversation.messages[conversation.messages.length - 1];
-    const date = new Date(lastMsg.created_at);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    return lastMsg.created_at;
   }
 
   getFilteredConversations(): Conversation[] {

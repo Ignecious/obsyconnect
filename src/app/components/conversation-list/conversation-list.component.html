@@ -47,7 +47,7 @@
             <span class="customer-phone">{{ conversation.customer_email || conversation.customer_phone || '' }}</span>
           </div>
         </div>
-        <span class="timestamp">{{ getLastMessageTime(conversation) }}</span>
+        <span class="timestamp">{{ getLastMessageTime(conversation) | timeAgo }}</span>
       </div>
 
       <div class="item-body">

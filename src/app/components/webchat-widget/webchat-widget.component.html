@@ -16,46 +16,82 @@
       <button class="close-button" (click)="toggleChat()" aria-label="Close chat">✕</button>
     </div>
 
-    <!-- Messages Container -->
-    <div class="messages-container" #messagesContainer>
-      <div *ngFor="let message of messages" 
-           class="message-wrapper"
-           [class.user-message]="message.sender === 'customer'"
-           [class.ai-message]="message.sender === 'agent' || message.sender === 'system'">
-        <div class="message-bubble">
-          <span class="message-icon">{{ message.sender === 'customer' ? '👤' : '🤖' }}</span>
-          <div class="message-content" style="white-space: pre-line;">{{ message.message }}</div>
-        </div>
+    <!-- Welcome Form (shown before chat starts) -->
+    <div class="welcome-form" *ngIf="showWelcomeForm">
+      <div class="welcome-header">
+        <h3>👋 Welcome!</h3>
+        <p>Let's get started. Please tell us a bit about yourself.</p>
       </div>
+      <div class="welcome-body">
+        <div class="form-group">
+          <label>Your Name *</label>
+          <input
+            type="text"
+            [(ngModel)]="customerName"
+            placeholder="John Doe"
+            (keypress)="$event.key === 'Enter' && startChat()"
+            class="form-input"
+            autofocus
+          />
+          <span class="field-error" *ngIf="nameError">{{ nameError }}</span>
+        </div>
+        <div class="form-group">
+          <label>Email (optional)</label>
+          <input
+            type="email"
+            [(ngModel)]="customerEmail"
+            placeholder="john@example.com"
+            (keypress)="$event.key === 'Enter' && startChat()"
+            class="form-input"
+          />
+        </div>
+        <button class="btn-primary" (click)="startChat()">Start Chat</button>
+      </div>
+    </div>
 
-      <!-- Typing Indicator -->
-      <div *ngIf="isTyping" class="message-wrapper ai-message">
-        <div class="message-bubble typing-bubble">
-          <span class="message-icon">🤖</span>
-          <div class="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
+    <!-- Chat Interface (shown after form submitted) -->
+    <ng-container *ngIf="!showWelcomeForm">
+      <!-- Messages Container -->
+      <div class="messages-container" #messagesContainer>
+        <div *ngFor="let message of messages"
+             class="message-wrapper"
+             [class.user-message]="message.sender === 'customer'"
+             [class.ai-message]="message.sender === 'agent' || message.sender === 'system'">
+          <div class="message-bubble">
+            <span class="message-icon">{{ message.sender === 'customer' ? '👤' : '🤖' }}</span>
+            <div class="message-content" style="white-space: pre-line;">{{ message.message }}</div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div *ngIf="isTyping" class="message-wrapper ai-message">
+          <div class="message-bubble typing-bubble">
+            <span class="message-icon">🤖</span>
+            <div class="typing-indicator">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Input Box -->
-    <div class="input-container">
-      <input 
-        type="text" 
-        class="message-input"
-        [(ngModel)]="userMessage"
-        (keypress)="onKeyPress($event)"
-        placeholder="Type your message..."
-        [disabled]="isTyping">
-      <button 
-        class="send-button" 
-        (click)="sendMessage()"
-        [disabled]="!userMessage.trim() || isTyping">
-        ➤
-      </button>
-    </div>
+      <!-- Input Box -->
+      <div class="input-container">
+        <input
+          type="text"
+          class="message-input"
+          [(ngModel)]="userMessage"
+          (keypress)="onKeyPress($event)"
+          placeholder="Type your message..."
+          [disabled]="isTyping">
+        <button
+          class="send-button"
+          (click)="sendMessage()"
+          [disabled]="!userMessage.trim() || isTyping">
+          ➤
+        </button>
+      </div>
+    </ng-container>
   </div>
 </div>
