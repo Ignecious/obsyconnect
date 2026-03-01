@@ -77,12 +77,13 @@
 
 /* Chat Header */
 .chat-header {
-  background: linear-gradient(135deg, #A855F7 0%, #8B5CF6 100%);
+  background: #1F2937;
   padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 
   .header-left {
     display: flex;
@@ -91,12 +92,23 @@
   }
 
   .header-icon {
-    font-size: 20px;
+    font-size: 22px;
+  }
+
+  .header-text {
+    display: flex;
+    flex-direction: column;
   }
 
   .header-title {
     font-size: 16px;
     font-weight: 600;
+  }
+
+  .header-status {
+    font-size: 12px;
+    color: #4ADE80;
+    font-weight: 500;
   }
 
   .close-button {
@@ -128,7 +140,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  background: #1F2937;
+  background: #2B2D42;
 
   /* Custom scrollbar */
   &::-webkit-scrollbar {
@@ -193,6 +205,53 @@
   .message-content {
     flex: 1;
     color: white;
+  }
+}
+
+/* AI Message Block */
+.ai-message-block {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+  gap: 4px;
+
+  .ai-message-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+
+    .ai-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #D1D5DB;
+    }
+
+    .confidence-badge {
+      font-size: 11px;
+      font-weight: 700;
+      background: #A855F7;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+  }
+
+  .message-bubble {
+    max-width: 100%;
+    background: rgba(168, 85, 247, 0.08);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 4px 12px 12px 12px;
+
+    .message-content {
+      color: #E5E7EB;
+    }
+  }
+
+  .message-timestamp {
+    font-size: 11px;
+    color: #6B7280;
+    text-align: right;
   }
 }
 
@@ -304,7 +363,7 @@
   display: flex;
   gap: 0.75rem;
   align-items: center;
-  background: #1F2937;
+  background: #1A1B26;
 
   .message-input {
     flex: 1;
@@ -336,10 +395,11 @@
     background: #A855F7;
     border: none;
     color: white;
-    width: 40px;
+    padding: 0 16px;
     height: 40px;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -361,6 +421,16 @@
       cursor: not-allowed;
     }
   }
+}
+
+/* Chat Footer */
+.chat-footer {
+  background: #1A1B26;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.5rem 1rem;
+  text-align: center;
+  font-size: 11px;
+  color: #6B7280;
 }
 
 /* Mobile Responsive */

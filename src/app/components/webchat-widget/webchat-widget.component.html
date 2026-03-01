@@ -10,8 +10,11 @@
     <!-- Header -->
     <div class="chat-header">
       <div class="header-left">
-        <span class="header-icon">💬</span>
-        <span class="header-title">Tixxets Support</span>
+        <span class="header-icon">🤖</span>
+        <div class="header-text">
+          <span class="header-title">Tixxets Support</span>
+          <span class="header-status">🤖 AI Assistant Online</span>
+        </div>
       </div>
       <button class="close-button" (click)="toggleChat()" aria-label="Close chat">✕</button>
     </div>
@@ -71,10 +74,24 @@
              class="message-wrapper"
              [class.user-message]="message.sender === 'customer'"
              [class.ai-message]="message.sender === 'agent' || message.sender === 'system'">
-          <div class="message-bubble">
-            <span class="message-icon">{{ message.sender === 'customer' ? '👤' : '🤖' }}</span>
-            <div class="message-content" style="white-space: pre-line;">{{ message.message }}</div>
-          </div>
+          <ng-container *ngIf="message.sender === 'agent' || message.sender === 'system'; else userMsg">
+            <div class="ai-message-block">
+              <div class="ai-message-header">
+                <span class="ai-label">🤖 AI Assistant</span>
+                <span class="confidence-badge">{{ getConfidenceScore() }}%</span>
+              </div>
+              <div class="message-bubble">
+                <div class="message-content" style="white-space: pre-line;">{{ message.message }}</div>
+              </div>
+              <div class="message-timestamp">{{ formatTimestamp(message.created_at) }}</div>
+            </div>
+          </ng-container>
+          <ng-template #userMsg>
+            <div class="message-bubble">
+              <span class="message-icon">👤</span>
+              <div class="message-content" style="white-space: pre-line;">{{ message.message }}</div>
+            </div>
+          </ng-template>
         </div>
 
         <!-- Typing Indicator -->
@@ -103,8 +120,13 @@
           class="send-button"
           (click)="sendMessage()"
           [disabled]="!userMessage.trim() || isTyping">
-          ➤
+          Send
         </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="chat-footer">
+        Powered by AI • Response time: ~2 seconds
       </div>
     </ng-container>
   </div>
