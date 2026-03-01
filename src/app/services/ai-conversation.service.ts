@@ -155,6 +155,36 @@ export class AIConversationService {
   }
 
   /**
+   * Load AI conversations from localStorage (temporary storage)
+   * TODO: Replace with actual API call
+   */
+  getAIConversationsFromStorage(): AIConversation[] {
+    try {
+      const stored = localStorage.getItem('ai_conversations');
+      if (!stored) return this.getAIConversations();
+
+      const conversations = JSON.parse(stored);
+
+      return conversations.map((conv: any) => ({
+        id: conv.id,
+        customerId: conv.customerId,
+        customerName: conv.customerName,
+        channel: conv.channel,
+        firstMessage: conv.messages.find((m: any) => m.sender === 'customer')?.text || '',
+        lastMessage: conv.messages[conv.messages.length - 1]?.text || '',
+        status: conv.status === 'ai_resolved' ? 'resolved' : conv.status,
+        confidence: conv.confidence,
+        timestamp: new Date(conv.updatedAt),
+        messageCount: conv.messages.length
+      })) as AIConversation[];
+
+    } catch (error) {
+      console.error('Failed to load from localStorage:', error);
+      return this.getAIConversations();
+    }
+  }
+
+  /**
    * Get relative timestamp
    */
   getRelativeTime(timestamp: Date): string {
