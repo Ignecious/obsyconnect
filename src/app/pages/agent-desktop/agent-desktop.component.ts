@@ -27,6 +27,7 @@ export class AgentDesktopComponent {
   }
 
   onAIConversationSelected(conversation: AIConversation) {
+    // TODO: Load full conversation details in right panel
     console.log('AI Conversation selected:', conversation);
   }
 }

@@ -113,21 +113,23 @@ export class AIConversationService {
    */
   groupByDate(conversations: AIConversation[]): AIConversationGroup[] {
     const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayStart = new Date(todayStart.getTime() - 24 * 60 * 60 * 1000);
+    const weekStart = new Date(todayStart.getTime() - 6 * 24 * 60 * 60 * 1000);
+
     const today: AIConversation[] = [];
     const yesterday: AIConversation[] = [];
     const thisWeek: AIConversation[] = [];
     const older: AIConversation[] = [];
 
     conversations.forEach(conv => {
-      const diffMs = now.getTime() - conv.timestamp.getTime();
-      const diffHours = diffMs / (1000 * 60 * 60);
-      const diffDays = diffMs / (1000 * 60 * 60 * 24);
+      const convDate = new Date(conv.timestamp.getFullYear(), conv.timestamp.getMonth(), conv.timestamp.getDate());
 
-      if (diffHours < 24) {
+      if (convDate >= todayStart) {
         today.push(conv);
-      } else if (diffHours < 48) {
+      } else if (convDate >= yesterdayStart) {
         yesterday.push(conv);
-      } else if (diffDays < 7) {
+      } else if (convDate >= weekStart) {
         thisWeek.push(conv);
       } else {
         older.push(conv);
