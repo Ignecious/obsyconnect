@@ -1,10 +1,11 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ActivityTileComponent } from '../activity-tile/activity-tile.component';
 
 @Component({
   selector: 'app-case-panel',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ActivityTileComponent],
   templateUrl: './case-panel.component.html',
   styleUrls: ['./case-panel.component.scss']
 })
